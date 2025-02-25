@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  input:focus {
+    @apply outline-none ring-0;
+  }
+}
+
+.focus-visible:focus {
+  @apply outline-none ring-0;
+}

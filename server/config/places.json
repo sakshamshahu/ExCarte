@@ -1,0 +1,50 @@
+{
+  "places": [
+    {
+      "name": "Café Ivy",
+      "description": "A cozy café with a beautiful garden setting, perfect for morning coffee and brunch.",
+      "category": "coffee",
+      "latitude": 30.3165,
+      "longitude": 78.0322,
+      "address": "123 Mall Road",
+      "city": "Dehradun",
+      "images": [
+        "https://images.unsplash.com/photo-1554118811-1e0d58224f24",
+        "https://images.unsplash.com/photo-1559925393-8be0ec4767c8"
+      ],
+      "tags": ["coffee", "brunch", "outdoor seating", "wifi"],
+      "opening_hours": {
+        "monday": { "opens": "08:00", "closes": "20:00" },
+        "tuesday": { "opens": "08:00", "closes": "20:00" },
+        "wednesday": { "opens": "08:00", "closes": "20:00" },
+        "thursday": { "opens": "08:00", "closes": "20:00" },
+        "friday": { "opens": "08:00", "closes": "22:00" },
+        "saturday": { "opens": "09:00", "closes": "22:00" },
+        "sunday": { "opens": "09:00", "closes": "20:00" }
+      }
+    },
+    {
+      "name": "The Night Owl",
+      "description": "Popular nightclub featuring live music and craft cocktails.",
+      "category": "nightlife",
+      "latitude": 30.3195,
+      "longitude": 78.0352,
+      "address": "45 Rajpur Road",
+      "city": "Dehradun",
+      "images": [
+        "https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2",
+        "https://images.unsplash.com/photo-1572116469696-31de0f17cc34"
+      ],
+      "tags": ["nightlife", "music", "cocktails", "dancing"],
+      "opening_hours": {
+        "monday": { "opens": "18:00", "closes": "02:00" },
+        "tuesday": { "opens": "18:00", "closes": "02:00" },
+        "wednesday": { "opens": "18:00", "closes": "02:00" },
+        "thursday": { "opens": "18:00", "closes": "03:00" },
+        "friday": { "opens": "18:00", "closes": "04:00" },
+        "saturday": { "opens": "18:00", "closes": "04:00" },
+        "sunday": { "opens": "18:00", "closes": "02:00" }
+      }
+    }
+  ]
+}
