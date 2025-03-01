@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store';
-import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
 import Map from '../components/Map';
 import PlaceCard from '../components/PlaceCard';
 import PlaceDetails from '../components/PlaceDetails';
 import { MapPin, Star, Coffee, Music, Utensils, ShoppingBag, Search } from 'lucide-react';
+import Spinner from '../components/Spinner';
 
 const categories = [
   { id: 'all', name: 'All Places', icon: MapPin },
@@ -20,30 +21,29 @@ const Explore = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [showDetails, setShowDetails] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchPlaces = async () => {
-      let query = supabase
-        .from('places')
-        .select('*')
-        .order('heat_score', { ascending: false });
-
-      if (activeCategory !== 'all') {
-        query = query.eq('category', activeCategory);
-      }
-
-      if (searchQuery) {
-        query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
+      setIsLoading(true);
+      try {
+        const params: Record<string, string> = {};
+        
+        if (activeCategory !== 'all') {
+          params.category = activeCategory;
+        }
+        
+        if (searchQuery) {
+          params.search = searchQuery;
+        }
+        
+        const data = await api.places.getAll(params);
+        setPlaces(data || []);
+      } catch (error) {
         console.error('Error fetching places:', error);
-        return;
+      } finally {
+        setIsLoading(false);
       }
-
-      setPlaces(data || []);
     };
 
     fetchPlaces();
@@ -76,7 +76,7 @@ const Explore = () => {
               <input
                 type="text"
                 placeholder="Search places..."
-                className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:border-indigo-500"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -103,21 +103,33 @@ const Explore = () => {
         </div>
 
         {/* Places Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <AnimatePresence>
-            {places.map(place => (
-              <motion.div
-                key={place.id}
-                layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-              >
-                <PlaceCard place={place} onClick={() => handlePlaceSelect(place)} />
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <Spinner size="lg" className="text-indigo-600" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <AnimatePresence>
+              {places.length > 0 ? (
+                places.map(place => (
+                  <motion.div
+                    key={place.id}
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                  >
+                    <PlaceCard place={place} onClick={() => handlePlaceSelect(place)} />
+                  </motion.div>
+                ))
+              ) : (
+                <div className="col-span-3 text-center py-12">
+                  <p className="text-gray-500 text-lg">No places found matching your criteria.</p>
+                </div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
 
         {/* Place Details Modal */}
         {showDetails && selectedPlace && (

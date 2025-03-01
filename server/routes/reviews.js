@@ -42,6 +42,19 @@ router.post('/', async (req, res) => {
       }
     });
 
+    // Update place average rating and total reviews
+    await prisma.places.update({
+      where: { id: placeId },
+      data: {
+        average_rating: {
+          set: await calculateAverageRating(placeId)
+        },
+        total_reviews: {
+          increment: 1
+        }
+      }
+    });
+
     res.json(review);
   } catch (error) {
     console.error('Error creating review:', error);
@@ -68,6 +81,16 @@ router.put('/:id', async (req, res) => {
       }
     });
 
+    // Update place average rating
+    await prisma.places.update({
+      where: { id: review.place_id },
+      data: {
+        average_rating: {
+          set: await calculateAverageRating(review.place_id)
+        }
+      }
+    });
+
     res.json(review);
   } catch (error) {
     console.error('Error updating review:', error);
@@ -79,9 +102,34 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Get the review to find the place_id
+    const review = await prisma.reviews.findUnique({
+      where: { id }
+    });
+    
+    if (!review) {
+      return res.status(404).json({ error: 'Review not found' });
+    }
+    
+    const placeId = review.place_id;
 
+    // Delete the review
     await prisma.reviews.delete({
       where: { id }
+    });
+
+    // Update place average rating and total reviews
+    await prisma.places.update({
+      where: { id: placeId },
+      data: {
+        average_rating: {
+          set: await calculateAverageRating(placeId)
+        },
+        total_reviews: {
+          decrement: 1
+        }
+      }
     });
 
     res.json({ message: 'Review deleted successfully' });
@@ -90,5 +138,17 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete review' });
   }
 });
+
+// Helper function to calculate average rating
+async function calculateAverageRating(placeId) {
+  const result = await prisma.reviews.aggregate({
+    where: { place_id: placeId },
+    _avg: {
+      rating: true
+    }
+  });
+  
+  return result._avg.rating || 0;
+}
 
 export default router;

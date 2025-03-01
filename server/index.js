@@ -7,6 +7,7 @@ import { dirname, join } from 'path';
 import placesRouter from './routes/places.js';
 import usersRouter from './routes/users.js';
 import reviewsRouter from './routes/reviews.js';
+import authRouter from './routes/auth.js';
 
 // Load environment variables
 const __filename = fileURLToPath(import.meta.url);
@@ -27,6 +28,7 @@ app.get('/health', (req, res) => {
 app.use('/api/places', placesRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/reviews', reviewsRouter);
+app.use('/api/auth', authRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

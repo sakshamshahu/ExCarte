@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../store';
 import { Map } from 'lucide-react';
@@ -6,25 +6,62 @@ import UserMenu from './UserMenu';
 import { motion } from 'framer-motion';
 import { auth } from '../lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import { api } from '../lib/api';
+import Spinner from './Spinner';
 
 const Navbar = () => {
   const { user, setUser } = useStore();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!auth) return;
+    if (!auth) {
+      setIsLoading(false);
+      return;
+    }
 
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        setUser({
-          id: firebaseUser.uid,
-          email: firebaseUser.email || '',
-          name: firebaseUser.displayName || 'User',
-          preferences: {},
-          favorites: []
-        });
+        try {
+          // Try to get user profile from API
+          const profile = await api.auth.getProfile(firebaseUser.uid);
+          
+          if (profile) {
+            // User exists in database
+            setUser({
+              id: firebaseUser.uid,
+              email: firebaseUser.email || '',
+              name: `${profile.first_name} ${profile.last_name}`,
+              preferences: profile.preferences.reduce((acc, pref) => {
+                acc[pref.category] = pref.interest_level;
+                return acc;
+              }, {}),
+              favorites: []
+            });
+          } else {
+            // New user, just set basic info
+            setUser({
+              id: firebaseUser.uid,
+              email: firebaseUser.email || '',
+              name: firebaseUser.displayName || 'User',
+              preferences: {},
+              favorites: []
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+          // Fallback to basic info
+          setUser({
+            id: firebaseUser.uid,
+            email: firebaseUser.email || '',
+            name: firebaseUser.displayName || 'User',
+            preferences: {},
+            favorites: []
+          });
+        }
       } else {
         setUser(null);
       }
+      setIsLoading(false);
     });
 
     return () => unsubscribe();
@@ -52,7 +89,9 @@ const Navbar = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
           >
-            {user ? (
+            {isLoading ? (
+              <Spinner size="sm" className="text-indigo-600" />
+            ) : user ? (
               <>
                 <Link
                   to="/explore"

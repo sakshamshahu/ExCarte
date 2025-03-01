@@ -1,6 +1,5 @@
 import express from 'express';
 import prisma from '../lib/prisma.js';
-import { supabase } from '../lib/supabase.js';
 import placesData from '../config/places.json' assert { type: 'json' };
 
 const router = express.Router();
@@ -9,32 +8,45 @@ const router = express.Router();
 router.post('/seed', async (req, res) => {
   try {
     for (const place of placesData.places) {
-      await prisma.places.upsert({
-        where: { name: place.name },
-        update: {
-          description: place.description,
-          category: place.category,
-          latitude: place.latitude,
-          longitude: place.longitude,
-          address: place.address,
-          city: place.city,
-          images: place.images,
-          tags: place.tags,
-          opening_hours: place.opening_hours
-        },
-        create: {
-          name: place.name,
-          description: place.description,
-          category: place.category,
-          latitude: place.latitude,
-          longitude: place.longitude,
-          address: place.address,
-          city: place.city,
-          images: place.images,
-          tags: place.tags,
-          opening_hours: place.opening_hours
-        }
+      // First check if a place with the same name already exists
+      const existingPlace = await prisma.places.findFirst({
+        where: { name: place.name }
       });
+
+      if (existingPlace) {
+        // If it exists, update it using the id as the unique identifier
+        await prisma.places.update({
+          where: { id: existingPlace.id },
+          data: {
+            description: place.description,
+            category: place.category,
+            latitude: place.latitude,
+            longitude: place.longitude,
+            address: place.address,
+            city: place.city,
+            images: place.images,
+            tags: place.tags,
+            opening_hours: place.opening_hours,
+            updated_at: new Date()
+          }
+        });
+      } else {
+        // If it doesn't exist, create a new record
+        await prisma.places.create({
+          data: {
+            name: place.name,
+            description: place.description,
+            category: place.category,
+            latitude: place.latitude,
+            longitude: place.longitude,
+            address: place.address,
+            city: place.city,
+            images: place.images,
+            tags: place.tags,
+            opening_hours: place.opening_hours
+          }
+        });
+      }
     }
     res.json({ message: 'Places seeded successfully' });
   } catch (error) {
@@ -106,19 +118,24 @@ router.get('/heatmap', async (req, res) => {
       radius = 10000 // Default 10km radius
     } = req.query;
 
-    let query = supabase
-      .from('places')
-      .select('id, latitude, longitude, heat_score, category');
-
+    let whereClause = {};
+    
     if (category) {
-      query = query.eq('category', category);
+      whereClause.category = category;
     }
 
-    const { data, error } = await query;
+    const places = await prisma.places.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        latitude: true,
+        longitude: true,
+        heat_score: true,
+        category: true
+      }
+    });
 
-    if (error) throw error;
-
-    const heatmapData = data.map(place => ({
+    const heatmapData = places.map(place => ({
       location: { lat: place.latitude, lng: place.longitude },
       weight: place.heat_score
     }));

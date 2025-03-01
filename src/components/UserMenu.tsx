@@ -27,7 +27,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
 
   return (
     <Menu as="div" className="relative ml-3">
-      <Menu.Button className="flex items-center gap-2 rounded-full bg-white p-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+      <Menu.Button className="flex items-center gap-2 rounded-full bg-white p-1 text-sm focus:outline-none">
         <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
           <span className="text-indigo-600 font-medium">
             {user.name?.[0]?.toUpperCase() || 'U'}

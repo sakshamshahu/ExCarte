@@ -1,6 +1,5 @@
 import express from 'express';
 import prisma from '../lib/prisma.js';
-import { supabase } from '../lib/supabase.js';
 
 const router = express.Router();
 
@@ -37,17 +36,24 @@ router.post('/:id/preferences', async (req, res) => {
     const { id } = req.params;
     const { preferences } = req.body;
 
-    const updatedUser = await prisma.users.update({
+    // Delete existing preferences
+    await prisma.user_preferences.deleteMany({
+      where: { user_id: id }
+    });
+
+    // Create new preferences
+    const preferencesData = Object.entries(preferences).map(([category, level]) => ({
+      user_id: id,
+      category,
+      interest_level: Number(level)
+    }));
+
+    await prisma.user_preferences.createMany({
+      data: preferencesData
+    });
+
+    const updatedUser = await prisma.users.findUnique({
       where: { id },
-      data: {
-        preferences: {
-          deleteMany: {},
-          create: Object.entries(preferences).map(([category, level]) => ({
-            category,
-            interest_level: level
-          }))
-        }
-      },
       include: {
         preferences: true
       }

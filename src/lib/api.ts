@@ -1,6 +1,41 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const api = {
+  auth: {
+    createProfile: async (userData: any) => {
+      const response = await fetch(`${API_URL}/auth/profile`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+      });
+      if (!response.ok) throw new Error('Failed to create user profile');
+      return response.json();
+    },
+
+    createPreferences: async (userId: string, preferences: any) => {
+      const response = await fetch(`${API_URL}/auth/preferences`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ user_id: userId, preferences })
+      });
+      if (!response.ok) throw new Error('Failed to create user preferences');
+      return response.json();
+    },
+
+    getProfile: async (authId: string) => {
+      const response = await fetch(`${API_URL}/auth/profile/${authId}`);
+      if (!response.ok) {
+        if (response.status === 404) return null;
+        throw new Error('Failed to fetch user profile');
+      }
+      return response.json();
+    }
+  },
+
   places: {
     getAll: async (params = {}) => {
       const searchParams = new URLSearchParams(params);
