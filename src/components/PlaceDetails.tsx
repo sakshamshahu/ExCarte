@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Star, MapPin, Clock, Phone, Globe } from 'lucide-react';
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 interface PlaceDetailsProps {
   place: any;
@@ -10,6 +11,7 @@ interface PlaceDetailsProps {
 
 const PlaceDetails: React.FC<PlaceDetailsProps> = ({ place, onClose }) => {
   const [selectedImage, setSelectedImage] = useState(0);
+  const navigate = useNavigate();
 
   return (
     <AnimatePresence>
@@ -66,13 +68,19 @@ const PlaceDetails: React.FC<PlaceDetailsProps> = ({ place, onClose }) => {
                 <h2 className="text-2xl font-bold text-gray-900">{place.name}</h2>
                 <div className="flex items-center mt-2">
                   <Star className="h-5 w-5 text-yellow-400 fill-current" />
-                  <span className="ml-1 font-medium">{place.rating}</span>
+                  <span className="ml-1 font-medium">{place.average_rating.toFixed(1)}</span>
                   <span className="mx-1">•</span>
-                  <span className="text-gray-600">{place.reviews} reviews</span>
+                  <span className="text-gray-600">{place.total_reviews} reviews</span>
                 </div>
               </div>
-              <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                Add Review
+              <button 
+                onClick={() => {
+                  onClose();
+                  navigate(`/place/${place.id}/reviews`);
+                }}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                View Reviews
               </button>
             </div>
 
@@ -81,11 +89,11 @@ const PlaceDetails: React.FC<PlaceDetailsProps> = ({ place, onClose }) => {
                 <MapPin className="h-5 w-5" />
                 <span className="ml-2">{place.address}</span>
               </div>
-              {place.openingHours && (
+              {place.opening_hours && (
                 <div className="flex items-center text-gray-600">
                   <Clock className="h-5 w-5" />
                   <span className="ml-2">
-                    {format(new Date(), 'EEEE')}: {place.openingHours.today}
+                    {format(new Date(), 'EEEE')}: {place.opening_hours.today}
                   </span>
                 </div>
               )}
@@ -116,35 +124,52 @@ const PlaceDetails: React.FC<PlaceDetailsProps> = ({ place, onClose }) => {
             </div>
 
             <div className="mt-6">
-              <h3 className="text-lg font-semibold text-gray-900">Reviews</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">Reviews</h3>
+                <button
+                  onClick={() => {
+                    onClose();
+                    navigate(`/place/${place.id}/reviews`);
+                  }}
+                  className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                >
+                  See all reviews
+                </button>
+              </div>
               <div className="mt-4 space-y-4">
-                {place.reviews?.map((review: any) => (
-                  <div key={review.id} className="border-b border-gray-200 pb-4">
-                    <div className="flex items-center">
-                      <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                        <span className="text-gray-600 font-medium">
-                          {review.user.name[0]}
-                        </span>
-                      </div>
-                      <div className="ml-3">
-                        <p className="font-medium text-gray-900">{review.user.name}</p>
-                        <div className="flex items-center mt-1">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-4 w-4 ${
-                                i < review.rating
-                                  ? 'text-yellow-400 fill-current'
-                                  : 'text-gray-300'
-                              }`}
-                            />
-                          ))}
+                {place.reviews && place.reviews.length > 0 ? (
+                  place.reviews.slice(0, 2).map((review: any) => (
+                    <div key={review.id} className="border-b border-gray-200 pb-4">
+                      <div className="flex items-center">
+                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                          <span className="text-gray-600 font-medium">
+                            {review.user?.first_name?.[0] || 'U'}
+                          </span>
+                        </div>
+                        <div className="ml-3">
+                          <p className="font-medium text-gray-900">
+                            {review.user?.first_name} {review.user?.last_name}
+                          </p>
+                          <div className="flex items-center mt-1">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`h-4 w-4 ${
+                                  i < review.rating
+                                    ? 'text-yellow-400 fill-current'
+                                    : 'text-gray-300'
+                                }`}
+                              />
+                            ))}
+                          </div>
                         </div>
                       </div>
+                      <p className="mt-2 text-gray-600">{review.comment}</p>
                     </div>
-                    <p className="mt-2 text-gray-600">{review.comment}</p>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-gray-500">No reviews yet. Be the first to review!</p>
+                )}
               </div>
             </div>
           </div>

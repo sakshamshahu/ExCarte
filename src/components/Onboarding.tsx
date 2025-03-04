@@ -6,6 +6,7 @@ import { useStore } from '../store';
 import { Coffee, Moon, Sun, ShoppingBag, Utensils, Palette } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Spinner from './Spinner';
+import { UserPreferences } from '../types';
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -68,10 +69,22 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         formData.preferences
       );
 
+      const preferences: UserPreferences = Object.entries(formData.preferences).reduce((acc, [category, interestLevel]) => ({
+        ...acc,
+        [category]: (interestLevel > 3)
+      }), {
+        nightlife: false,
+        coffee: false,
+        outdoor: false,
+        shopping: false,
+        dining: false,
+        culture: false
+      });
+
       setUser({
         ...user,
         name: `${formData.firstName} ${formData.lastName}`,
-        preferences: formData.preferences,
+        preferences
       });
 
       toast.success('Profile created successfully!');

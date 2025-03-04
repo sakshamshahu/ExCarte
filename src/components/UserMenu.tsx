@@ -96,7 +96,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
           <Menu.Item>
             {({ active }) => (
               <button
-                onClick={() => navigate('/profile/reviews')}
+                onClick={() => navigate('/user/reviews')}
                 className={`${
                   active ? 'bg-gray-50' : ''
                 } flex w-full items-center px-4 py-2 text-sm text-gray-700`}

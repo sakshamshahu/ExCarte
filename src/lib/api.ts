@@ -91,6 +91,18 @@ export const api = {
   },
 
   reviews: {
+    getForPlace: async (placeId: string) => {
+      const response = await fetch(`${API_URL}/reviews/place/${placeId}`);
+      if (!response.ok) throw new Error('Failed to fetch reviews');
+      return response.json();
+    },
+
+    getForUser: async (userId: string) => {
+      const response = await fetch(`${API_URL}/users/${userId}/reviews`);
+      if (!response.ok) throw new Error('Failed to fetch user reviews');
+      return response.json();
+    },
+
     create: async (data: any) => {
       const response = await fetch(`${API_URL}/reviews`, {
         method: 'POST',

@@ -38,6 +38,7 @@ const Explore = () => {
         }
         
         const data = await api.places.getAll(params);
+        console.log('Fetched places:', data);
         setPlaces(data || []);
       } catch (error) {
         console.error('Error fetching places:', error);
@@ -119,7 +120,17 @@ const Explore = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                   >
-                    <PlaceCard place={place} onClick={() => handlePlaceSelect(place)} />
+                    <PlaceCard place={
+                      {
+                        id: place.id,
+                        name: place.name,
+                        description: place.description,
+                        images: place.images,
+                        average_rating: place.average_rating,
+                        total_reviews: place.total_reviews,
+                        address: place.address,
+                      }
+                    } onClick={() => handlePlaceSelect(place)} />
                   </motion.div>
                 ))
               ) : (

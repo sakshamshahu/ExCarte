@@ -24,10 +24,41 @@ router.get('/place/:placeId', async (req, res) => {
   }
 });
 
+
 // Create a review
 router.post('/', async (req, res) => {
   try {
     const { userId, placeId, rating, comment } = req.body;
+
+    // Validate user exists
+    const user = await prisma.users.findUnique({
+      where: { auth_id: userId }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Validate place exists
+    const place = await prisma.places.findUnique({
+      where: { id: placeId }
+    });
+
+    if (!place) {
+      return res.status(404).json({ error: 'Place not found' });
+    }
+
+    // Check if user already has a review for this place
+    const existingReview = await prisma.reviews.findFirst({
+      where: {
+        user_id: userId,
+        place_id: placeId
+      }
+    });
+
+    if (existingReview) {
+      return res.status(400).json({ error: 'You have already reviewed this place' });
+    }
 
     const review = await prisma.reviews.create({
       data: {
@@ -58,7 +89,7 @@ router.post('/', async (req, res) => {
     res.json(review);
   } catch (error) {
     console.error('Error creating review:', error);
-    res.status(500).json({ error: 'Failed to create review' });
+    res.status(500).json({ error: 'Failed to create review', details: error.message });
   }
 });
 

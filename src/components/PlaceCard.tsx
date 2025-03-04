@@ -2,14 +2,14 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Star, MapPin } from 'lucide-react';
 
-interface PlaceCardProps {
+export interface PlaceCardProps {
   place: {
     id: string;
     name: string;
     description: string;
     images: string[];
-    rating: number;
-    reviews: number;
+    average_rating: number;
+    total_reviews: number;
     address: string;
   };
   onClick: () => void;
@@ -36,9 +36,11 @@ const PlaceCard: React.FC<PlaceCardProps> = ({ place, onClick }) => {
           <h3 className="text-lg font-semibold text-white">{place.name}</h3>
           <div className="flex items-center mt-1">
             <Star className="h-4 w-4 text-yellow-400 fill-current" />
-            <span className="ml-1 text-sm font-medium text-white">{place.rating}</span>
+            <span className="ml-1 text-sm font-medium text-white">
+              {place.average_rating.toFixed(1)}
+            </span>
             <span className="mx-1 text-white">•</span>
-            <span className="text-sm text-white">{place.reviews} reviews</span>
+            <span className="text-sm text-white">{place.total_reviews} reviews</span>
           </div>
         </div>
       </div>

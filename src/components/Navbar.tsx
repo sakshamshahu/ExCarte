@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../store';
 import { Map } from 'lucide-react';
@@ -31,7 +31,7 @@ const Navbar = () => {
               id: firebaseUser.uid,
               email: firebaseUser.email || '',
               name: `${profile.first_name} ${profile.last_name}`,
-              preferences: profile.preferences.reduce((acc, pref) => {
+              preferences: profile.preferences.reduce((acc : any, pref: any) => {
                 acc[pref.category] = pref.interest_level;
                 return acc;
               }, {}),
@@ -43,7 +43,7 @@ const Navbar = () => {
               id: firebaseUser.uid,
               email: firebaseUser.email || '',
               name: firebaseUser.displayName || 'User',
-              preferences: {},
+              preferences: { nightlife: false, coffee: false, outdoor: false, shopping: false, dining: false, culture: false },
               favorites: []
             });
           }
@@ -54,7 +54,7 @@ const Navbar = () => {
             id: firebaseUser.uid,
             email: firebaseUser.email || '',
             name: firebaseUser.displayName || 'User',
-            preferences: {},
+            preferences: { nightlife: false, coffee: false, outdoor: false, shopping: false, dining: false, culture: false },
             favorites: []
           });
         }

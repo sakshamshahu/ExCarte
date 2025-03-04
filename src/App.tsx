@@ -6,6 +6,8 @@ import Home from './pages/Home';
 import Explore from './pages/Explore';
 import Profile from './pages/Profile';
 import Auth from './pages/Auth';
+import PlaceReviews from './pages/PlaceReviews';
+import UserReviews from './pages/UserReviews';
 
 function App() {
   return (
@@ -17,6 +19,8 @@ function App() {
           <Route path="/explore" element={<Explore />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/place/:id/reviews" element={<PlaceReviews />} />
+          <Route path="/user/reviews" element={<UserReviews />} />
         </Routes>
         <Toaster position="bottom-right" />
       </div>

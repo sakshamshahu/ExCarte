@@ -12,8 +12,8 @@ export interface Place {
   name: string;
   description: string;
   category: string;
-  rating: number;
-  reviews: number;
+  average_rating: number;
+  total_reviews: number;
   latitude: number;
   longitude: number;
   address: string;
