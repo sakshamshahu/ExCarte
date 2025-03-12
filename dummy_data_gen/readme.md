@@ -8,30 +8,43 @@ Currently, I plan on implementing it using PostgreSQL in a Docker container.
 
 ## Schema defintion
 ```sql
--- Import in PostGIS
-CREATE EXTENSION IF NOT EXISTS postgis;
+-- Enable required extensions
+CREATE EXTENSION IF NOT EXISTS postgis;    -- For geographic data handling
+CREATE EXTENSION IF NOT EXISTS pgcrypto;   -- For UUID generation
 
--- Import in pgcrypto
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
--- Custom types
+-- Custom type for days of the week
 CREATE TYPE day_of_week AS ENUM ('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday');
 
--- Core places table
-CREATE TABLE places (
-    place_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    location geography(Point,4326) NOT NULL,
-    name VARCHAR(255),
-    classifications JSONB NOT NULL,  -- Stores different classes and their weights
-    rating DECIMAL(3,2) CHECK (rating >= 0 AND rating <= 1),
-    sources JSONB NOT NULL DEFAULT '{}',  -- Stores data from different sources
-    address TEXT,
-    data_gathered_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    last_updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    search_vector tsvector
+-- Table to store distinct classes (e.g., 'nightlife', 'family-friendly')
+CREATE TABLE classes (
+    class_id SERIAL PRIMARY KEY,
+    class_name VARCHAR(50) UNIQUE NOT NULL
 );
 
--- Operating hours related tables
+-- Core table for places
+CREATE TABLE places (
+    place_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    location geography(Point,4326) NOT NULL,          -- Stores longitude and latitude
+    name VARCHAR(255),
+    rating DECIMAL(3,2) CHECK (rating >= 0 AND rating <= 1),  -- Normalized rating between 0 and 1
+    sources JSONB NOT NULL DEFAULT '{}',              -- Metadata from scraped sources
+    address TEXT,
+    data_gathered_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),  -- Timestamp of initial data collection
+    last_updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),   -- Timestamp of last update
+    search_vector tsvector                            -- For full-text search optimization
+);
+
+-- Junction table linking places to classes with weightages
+CREATE TABLE place_classifications (
+    place_id UUID NOT NULL,
+    class_id INT NOT NULL,
+    weightage DECIMAL(3,2) CHECK (weightage >= 0 AND weightage <= 1),  -- Weight between 0.00 and 1.00
+    PRIMARY KEY (place_id, class_id),
+    FOREIGN KEY (place_id) REFERENCES places(place_id) ON DELETE CASCADE,
+    FOREIGN KEY (class_id) REFERENCES classes(class_id) ON DELETE RESTRICT
+);
+
+-- Table for regular operating hours
 CREATE TABLE operating_hours (
     place_id UUID REFERENCES places(place_id) ON DELETE CASCADE,
     day_of_week day_of_week NOT NULL,
@@ -40,6 +53,7 @@ CREATE TABLE operating_hours (
     PRIMARY KEY (place_id, day_of_week)
 );
 
+-- Table for holiday-specific hours
 CREATE TABLE holiday_hours (
     place_id UUID REFERENCES places(place_id) ON DELETE CASCADE,
     holiday_date DATE NOT NULL,
@@ -49,11 +63,12 @@ CREATE TABLE holiday_hours (
     PRIMARY KEY (place_id, holiday_date)
 );
 
--- Indexes for optimization
-CREATE INDEX idx_places_location ON places USING GIST(location);
-CREATE INDEX idx_places_classifications ON places USING GIN(classifications);
-CREATE INDEX idx_places_search ON places USING GIN(search_vector);
-CREATE INDEX idx_holiday_hours_date ON holiday_hours(holiday_date);
+-- Indexes for performance optimization
+CREATE INDEX idx_places_location ON places USING GIST(location);               -- Spatial queries
+CREATE INDEX idx_places_search ON places USING GIN(search_vector);             -- Full-text search
+CREATE INDEX idx_holiday_hours_date ON holiday_hours(holiday_date);            -- Date-based queries
+CREATE INDEX idx_place_classifications_place_id ON place_classifications(place_id);  -- Joins by place
+CREATE INDEX idx_place_classifications_class_id ON place_classifications(class_id);  -- Joins by class
 ```
 
 ## Tables explained
@@ -63,19 +78,6 @@ CREATE INDEX idx_holiday_hours_date ON holiday_hours(holiday_date);
     - UUID that is also the primar key
 - location: 
     - point (x float, y float) store - longitude and latitude
-- classifications: 
-    - A jsonb value that stores what classes the current place stored contributes to in terms of weight (0 for no impact/relation, 1 for maximum impact/relation to class). 
-    - Example:
-        - place that is a hotel with a bar: 
-             ```json
-            {
-                "nightlife": 0.4,    // 40% relevance to nightlife
-                "tourism": 0.9,      // 90% relevance to tourism
-                "real_estate": 0.1,  // 10% relevance to real estate
-                "cultural": 0.0      // No relevance to cultural activities
-            }
-            ```
-
 - rating: 
     - A normalized value b/w 0 and 1. 1 implies best rating, 0 implies lowest rating. 
     - Can be de-normalized for display purposes.    
@@ -109,6 +111,24 @@ CREATE INDEX idx_holiday_hours_date ON holiday_hours(holiday_date);
     - Same purpose as data_gathered_at.
 - search_vector:
     - For optimizing any vector operations.
+
+#### TABLE classes
+- Stores all possible classes (e.g., "nightlife", "family-friendly") to ensure consistency.
+- Separating classes into its own table prevents typos and supports easy addition of new classes.
+- Columns:
+    - class_id: Auto-incrementing integer primary key.
+    - class_name: Unique name of the class (e.g., "nightlife"), limited to 50 characters.
+
+#### TABLE places_classifications
+- Links places to classes with a weightage
+- Columns:
+    - place_id: Foreign key to places.
+    - class_id: Foreign key to classes.
+    - weightage: Decimal (0.00 to 1.00) indicating relevance to the class.
+- Constraints: 
+    - Primary key is (place_id, class_id) to ensure a place has only one weight per class.
+    - ON DELETE CASCADE on place_id: Deleting a place removes its classifications.
+    - ON DELETE RESTRICT on class_id: Prevents deleting a class if places reference it.
 
 
 ##### TABLE operating_hours
@@ -156,6 +176,33 @@ The heatmap is generated by considering:
 - Current rating
 - Operating status (based on time and date)
 - Data freshness (using gathered/updated timestamps)
+
+## Sample Data insert
+
+```sql
+-- Insert classes
+INSERT INTO classes (class_name) VALUES 
+    ('nightlife'), 
+    ('family-friendly'), 
+    ('tourism');
+
+-- Insert a place
+INSERT INTO places (location, name, rating, sources, address, data_gathered_at, last_updated_at) 
+VALUES 
+    ('POINT(-73.935242 40.730610)', 'Club XYZ', 0.85, 
+     '{"url1": 0.4, "url2": 0.6, "url3": 0.3}', 
+     '123 Night St, NYC', 
+     '2024-10-01T12:00:00Z', 
+     '2024-10-01T12:00:00Z');
+
+-- Link place to classes with weightages
+INSERT INTO place_classifications (place_id, class_id, weightage) 
+VALUES 
+    ((SELECT place_id FROM places WHERE name = 'Club XYZ'), 
+     (SELECT class_id FROM classes WHERE class_name = 'nightlife'), 0.9),
+    ((SELECT place_id FROM places WHERE name = 'Club XYZ'), 
+     (SELECT class_id FROM classes WHERE class_name = 'tourism'), 0.3);
+```
 
 ## Query examples:
 Querying for all operational shops for 2-22-2025 at night and of the class "nightlife", with their ratings as the output.
@@ -224,26 +271,30 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE;
 
--- Final query using helper functions
+-- Finaly query to retrieve required rows
 WITH current_status AS (
     SELECT 
         p.place_id,
         p.name,
+        p.address,
+        p.location,
         p.rating,
-        (p.classifications->>'nightlife')::decimal AS nightlife_score,
+        pc.weightage AS nightlife_score,
         COALESCE(
             is_place_open_on_holiday(p.place_id, DATE '2025-02-22', TIME '20:00'),
             is_place_open_on_weekday(p.place_id, 'saturday', TIME '20:00'),
             FALSE
         ) AS is_open
     FROM places p
-    WHERE p.classifications ? 'nightlife'
+    JOIN place_classifications pc ON p.place_id = pc.place_id
+    JOIN classes c ON pc.class_id = c.class_id
+    WHERE c.class_name = 'nightlife'
 )
 SELECT 
-    place_id,
     name,
-    rating,
-    nightlife_score
+    address,
+    location,
+    rating
 FROM current_status
 WHERE 
     is_open = true 
