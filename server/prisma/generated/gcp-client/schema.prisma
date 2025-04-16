@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/gcp-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_1")
+}
+
+model users {
+  id            String             @id @default(uuid())
+  auth_id       String             @unique
+  first_name    String
+  last_name     String
+  email         String             @unique
+  birth_date    DateTime
+  explorer_type String             @default("both")
+  created_at    DateTime           @default(now())
+  updated_at    DateTime           @default(now())
+  preferences   user_preferences[]
+  reviews       reviews[]
+}
+
+model user_preferences {
+  id             String   @id @default(uuid())
+  user_id        String
+  category       String
+  interest_level Int
+  created_at     DateTime @default(now())
+  updated_at     DateTime @default(now())
+  user           users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, category])
+}
+
+//TODO: add place_classifications (
+//     place_id UUID NOT NULL,
+//     class_id INT NOT NULL,
+//     weightage DECIMAL(3,2) CHECK (weightage >= 0 AND weightage <= 1),  -- Weight between 0.00 and 1.00
+//     PRIMARY KEY (place_id, class_id),
+//     FOREIGN KEY (place_id) REFERENCES places(place_id) ON DELETE CASCADE,
+//     FOREIGN KEY (class_id) REFERENCES classes(class_id) ON DELETE RESTRICT
+// );
+
+// model places {
+//   id             String    @id @default(uuid()) @unique
+//   name           String
+//   description    String
+//   category       String
+//   latitude       Float
+//   longitude      Float
+//   address        String
+//   city           String
+//   images         String[]
+//   tags           String[]
+//   opening_hours  Json?
+//   average_rating Float     @default(0)
+//   total_reviews  Int       @default(0)
+//   heat_score     Float     @default(0)
+//   created_at     DateTime  @default(now())
+//   updated_at     DateTime  @default(now())
+//   reviews        reviews[]
+// }
+
+model places {
+  id                           String    @id @unique @default(uuid())
+  name                         String
+  description                  String
+  category                     String
+  latitude                     Float
+  longitude                    Float
+  address                      String
+  city                         String
+  images                       String[]
+  tags                         String[]
+  opening_hours                Json?
+  average_rating               Float     @default(0)
+  total_reviews                Int       @default(0)
+  heat_score                   Float     @default(0)
+  created_at                   DateTime  @default(now())
+  updated_at                   DateTime  @default(now())
+  reviews                      reviews[]
+  googleMapsUri                String    @default("")
+  websiteUri                   String    @default("")
+  nationalPhoneNumber          String?
+  internationalPhoneNumber     String?
+  take_out                     Boolean   @default(false)
+  delivery                     Boolean   @default(false)
+  dine_in                      Boolean   @default(false)
+  reservable                   Boolean   @default(false)
+  serves_breakfast             Boolean   @default(false)
+  serves_lunch                 Boolean   @default(false)
+  serves_dinner                Boolean   @default(false)
+  serves_beer                  Boolean   @default(false)
+  serves_wine                  Boolean   @default(false)
+  serves_brunch                Boolean   @default(false)
+  serves_vegetarian_food       Boolean   @default(false)
+  outdoor_seating              Boolean   @default(false)
+  live_music                   Boolean   @default(false)
+  menu_for_children            Boolean   @default(false)
+  serves_cocktails             Boolean   @default(false)
+  serves_dessert               Boolean   @default(false)
+  serves_coffee                Boolean   @default(false)
+  good_for_children            Boolean   @default(false)
+  restroom                     Boolean   @default(false)
+  good_for_groups              Boolean   @default(false)
+  good_for_watching_sports     Boolean   @default(false)
+  priceLevel                   String    @default("PRICE_LEVEL_UNSPECIFIED")
+  timeZone                     String    @default("Asia/Kolkata")
+  acceptsCreditCards           Boolean   @default(false)
+  acceptsDebitCards            Boolean   @default(false)
+  acceptsCashOnly              Boolean   @default(false)
+  acceptsNfc                   Boolean   @default(false)
+  freeParkingLot               Boolean   @default(false)
+  freeStreetParking            Boolean   @default(false)
+  paidParkingLot               Boolean   @default(false)
+  valetParking                 Boolean   @default(false)
+  wheelchairAccessibleParking  Boolean   @default(false)
+  wheelchairAccessibleEntrance Boolean   @default(false)
+  wheelchairAccessibleRestroom Boolean   @default(false)
+  wheelchairAccessibleSeating  Boolean   @default(false)
+  directionsUri                String    @default("")
+  placeUri                     String    @default("")
+  writeAReviewUri              String    @default("")
+  reviewsUri                   String    @default("")
+  photosUri                    String    @default("")
+  google_average_rating        Float     @default(0)
+  google_total_reviews         Int       @default(0)
+}
+
+model reviews {
+  id         String   @id @default(uuid())
+  user_id    String
+  place_id   String
+  rating     Int
+  comment    String?
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+  user       users    @relation(fields: [user_id], references: [auth_id], onDelete: Cascade)
+  place      places   @relation(fields: [place_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, place_id])
+}

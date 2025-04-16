@@ -1,5 +1,5 @@
 import express from 'express';
-import prisma from '../lib/prisma.js';
+import { GCPprisma, SupabasePrisma } from '../lib/prisma.js';
 
 const router = express.Router();
 
@@ -9,18 +9,34 @@ router.post('/profile', async (req, res) => {
     const { auth_id, first_name, last_name, birth_date, explorer_type, email } = req.body;
     
     // Create user profile
-    const userData = await prisma.users.create({
+    const userData = await GCPprisma.users.create({
       data: {
         auth_id,
         first_name,
         last_name,
         birth_date: new Date(birth_date),
         explorer_type: explorer_type || 'both',
-        email: email || `${auth_id}@example.com` // Fallback email if not provided
+        email: email || ''
       }
     });
 
-    res.json(userData);
+    console.log('User profile created:', userData);
+    // Send response
+    res.end(userData);
+
+    console.info('Started creating user profile in Supabase');
+    // Create user profile in Supabase
+    const userDataSupabase = await SupabasePrisma.users.create({
+      data: {
+        auth_id,
+        first_name,
+        last_name,
+        birth_date: new Date(birth_date),
+        explorer_type: explorer_type || 'both',
+        email: email || ''
+      }
+    });
+    console.log('User profile created in Supabase:', userDataSupabase);
   } catch (error) {
     console.error('Error creating user profile:', error);
     res.status(500).json({ error: 'Failed to create user profile' });
@@ -40,15 +56,26 @@ router.post('/preferences', async (req, res) => {
     }));
 
     // Create all preferences in a transaction
-    const result = await prisma.$transaction(
+    const result = await GCPprisma.$transaction(
       preferencesData.map(prefData => 
-        prisma.user_preferences.create({
+        GCPprisma.user_preferences.create({
           data: prefData
         })
       )
     );
 
-    res.json(result);
+    res.end(result);
+
+    console.info('Started creating user preferences in Supabase');
+    // Create user preferences in Supabase
+    const supabaseResult = await SupabasePrisma.$transaction(
+      preferencesData.map(prefData => 
+        SupabasePrisma.user_preferences.create({
+          data: prefData
+        })
+      )
+    );
+    console.log('User preferences created in Supabase:', supabaseResult);
   } catch (error) {
     console.error('Error creating user preferences:', error);
     res.status(500).json({ error: 'Failed to create user preferences' });
@@ -60,7 +87,7 @@ router.get('/profile/:auth_id', async (req, res) => {
   try {
     const { auth_id } = req.params;
     
-    const userData = await prisma.users.findUnique({
+    const userData = await GCPprisma.users.findUnique({
       where: { auth_id },
       include: {
         preferences: true

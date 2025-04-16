@@ -49,7 +49,7 @@ const PlaceDetails: React.FC<PlaceDetailsProps> = ({ place, onClose }) => {
             </div>
             {place.images.length > 1 && (
               <div className="absolute bottom-4 left-4 flex space-x-2">
-                {place.images.map((_, index) => (
+                {place.images.map((_: any, index: any) => (
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}

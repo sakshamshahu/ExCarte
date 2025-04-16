@@ -1,5 +1,5 @@
 import express from 'express';
-import prisma from '../lib/prisma.js';
+import { GCPprisma }  from '../lib/prisma.js';
 
 const router = express.Router();
 
@@ -7,7 +7,7 @@ const router = express.Router();
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const user = await prisma.users.findUnique({
+    const user = await GCPprisma.users.findUnique({
       where: { id },
       include: {
         preferences: true,
@@ -37,7 +37,7 @@ router.post('/:id/preferences', async (req, res) => {
     const { preferences } = req.body;
 
     // Delete existing preferences
-    await prisma.user_preferences.deleteMany({
+    await GCPprisma.user_preferences.deleteMany({
       where: { user_id: id }
     });
 
@@ -48,18 +48,29 @@ router.post('/:id/preferences', async (req, res) => {
       interest_level: Number(level)
     }));
 
-    await prisma.user_preferences.createMany({
+    await GCPprisma.user_preferences.createMany({
       data: preferencesData
     });
 
-    const updatedUser = await prisma.users.findUnique({
+    const updatedUser = await GCPprisma.users.findUnique({
       where: { id },
       include: {
         preferences: true
       }
     });
 
-    res.json(updatedUser);
+    res.end(updatedUser);
+    console.info('Started updating user preferences in Supabase');
+    // Update user preferences in Supabase
+    const supabaseResult = await SupabasePrisma.user_preferences.deleteMany({
+      where: { user_id: id }
+    });
+    console.log('User preferences updated in Supabase:', supabaseResult);
+    // Create new preferences in Supabase
+    await SupabasePrisma.user_preferences.createMany({
+      data: preferencesData
+    });
+    console.log('User preferences created in Supabase:', supabaseResult);
   } catch (error) {
     console.error('Error updating preferences:', error);
     res.status(500).json({ error: 'Failed to update preferences' });

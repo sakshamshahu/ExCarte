@@ -6,7 +6,12 @@
     "dev": "node --watch index.js",
     "start": "node index.js",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate deploy",
+    "prisma:migrate:dev": "prisma migrate dev --schema prisma/schema1.prisma && prisma migrate dev --schema prisma/schema2.prisma",
+    "prisma": "prisma generate --schema prisma/schema1.prisma --watch & prisma generate --schema prisma/schema2.prisma --watch",
+    "prisma:migrate": "npm run prisma:migrate:gcp && npm run prisma:migrate:supabase",
+    "prisma:migrate:gcp": "prisma migrate deploy --schema prisma/schema1.prisma",
+    "prisma:migrate:supabase": "prisma migrate deploy --schema prisma/schema2.prisma",
+    "prisma:push": "prisma db push --schema prisma/schema1.prisma & prisma db push --schema prisma/schema2.prisma",
     "seed": "node scripts/seed.js"
   },
   "dependencies": {

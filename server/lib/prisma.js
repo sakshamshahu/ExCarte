@@ -1,5 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient as GCPPrismaClient } from '../prisma/generated/gcp-client/index.js';
+import { PrismaClient as SupabasePrismaClient } from '../prisma/generated/supabase-client/index.js';
 
-const prisma = new PrismaClient();
+const GCPprisma = new GCPPrismaClient();
+const SupabasePrisma = new SupabasePrismaClient();
 
-export default prisma;
+export { GCPprisma, SupabasePrisma };

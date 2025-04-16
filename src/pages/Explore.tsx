@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store';
 import { api } from '../lib/api';
 import Map from '../components/Map';
 import PlaceCard from '../components/PlaceCard';
 import PlaceDetails from '../components/PlaceDetails';
-import { MapPin, Star, Coffee, Music, Utensils, ShoppingBag, Search } from 'lucide-react';
+import { MapPin, Coffee, Music, Utensils, ShoppingBag, Search } from 'lucide-react';
 import Spinner from '../components/Spinner';
+import { debounce } from 'lodash';
 
 const categories = [
   { id: 'all', name: 'All Places', icon: MapPin },
@@ -23,20 +24,14 @@ const Explore = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchPlaces = async () => {
+  const debouncedFetchPlaces = useCallback(
+    debounce(async (query: any, category: any) => {
       setIsLoading(true);
       try {
         const params: Record<string, string> = {};
-        
-        if (activeCategory !== 'all') {
-          params.category = activeCategory;
-        }
-        
-        if (searchQuery) {
-          params.search = searchQuery;
-        }
-        
+        if (category !== 'all') params.category = category;
+        if (query) params.search = query;
+
         const data = await api.places.getAll(params);
         console.log('Fetched places:', data);
         setPlaces(data || []);
@@ -45,29 +40,38 @@ const Explore = () => {
       } finally {
         setIsLoading(false);
       }
-    };
+    }, 300),
+    [setPlaces]
+  );
 
-    fetchPlaces();
-  }, [searchQuery, activeCategory, setPlaces]);
+  useEffect(() => {
+    debouncedFetchPlaces(searchQuery, activeCategory);
+    return () => debouncedFetchPlaces.cancel();
+  }, [searchQuery, activeCategory, debouncedFetchPlaces]);
 
   const handlePlaceSelect = (place: any) => {
     setSelectedPlace(place);
     setShowDetails(true);
   };
 
+  const memoizedMap = useMemo(
+    () => (
+      <Map
+        places={places}
+        onPlaceSelect={(placeId) => {
+          const place = places.find((p) => p.id === placeId);
+          if (place) handlePlaceSelect(place);
+        }}
+      />
+    ),
+    [places]
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Map Section */}
-        <div className="mb-8">
-          <Map
-            places={places}
-            onPlaceSelect={(placeId) => {
-              const place = places.find(p => p.id === placeId);
-              if (place) handlePlaceSelect(place);
-            }}
-          />
-        </div>
+        <div className="mb-8">{memoizedMap}</div>
 
         {/* Search and Filters */}
         <div className="mb-8">
@@ -83,7 +87,7 @@ const Explore = () => {
               />
             </div>
             <div className="mt-4 md:mt-0 flex space-x-2 overflow-x-auto pb-2 md:pb-0">
-              {categories.map(category => (
+              {categories.map((category) => (
                 <motion.button
                   key={category.id}
                   whileHover={{ scale: 1.05 }}
@@ -112,7 +116,7 @@ const Explore = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <AnimatePresence>
               {places.length > 0 ? (
-                places.map(place => (
+                places.map((place) => (
                   <motion.div
                     key={place.id}
                     layout
@@ -120,8 +124,8 @@ const Explore = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                   >
-                    <PlaceCard place={
-                      {
+                    <PlaceCard
+                      place={{
                         id: place.id,
                         name: place.name,
                         description: place.description,
@@ -129,8 +133,9 @@ const Explore = () => {
                         average_rating: place.average_rating,
                         total_reviews: place.total_reviews,
                         address: place.address,
-                      }
-                    } onClick={() => handlePlaceSelect(place)} />
+                      }}
+                      onClick={() => handlePlaceSelect(place)}
+                    />
                   </motion.div>
                 ))
               ) : (

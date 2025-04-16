@@ -26,3 +26,6 @@ dist-ssr
 .env
 .env.local
 supabase/migrations
+
+scrapy/split_csv_output
+.python-version

@@ -10,6 +10,23 @@ import PlaceReviews from './pages/PlaceReviews';
 import UserReviews from './pages/UserReviews';
 
 function App() {
+
+  const getLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        const { latitude, longitude } = position.coords;
+        console.log('Latitude:', latitude);
+        console.log('Longitude:', longitude);
+        console.log(navigator.userAgent);
+      });
+    } else {
+      console.error('Geolocation is not supported by this browser.');
+    }
+  }
+  
+  React.useEffect(() => {
+    getLocation();
+  }, []);
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
