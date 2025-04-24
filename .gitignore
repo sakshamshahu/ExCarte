@@ -29,3 +29,7 @@ supabase/migrations
 
 scrapy/split_csv_output
 .python-version
+
+# data
+ai/data/raw/blrdatapoints.csv
+ai/data/processed/filtered_data.csv
