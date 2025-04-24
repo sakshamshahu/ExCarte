@@ -1,0 +1,180 @@
+{
+  "places": [
+    {
+      "name": "Café Ivy",
+      "googleMapsUri": "https://goo.gl/maps/sampleCafeIvy",
+      "websiteUri": "https://www.cafeivy.com",
+      "description": "A cozy café with a beautiful garden setting, perfect for morning coffee and brunch.",
+      "category": "coffee",
+      "latitude": 30.3165,
+      "longitude": 78.0322,
+      "address": "123 Mall Road",
+      "city": "Dehradun",
+      "images": [
+        "https://images.unsplash.com/photo-1554118811-1e0d58224f24",
+        "https://images.unsplash.com/photo-1559925393-8be0ec4767c8"
+      ],
+      "tags": ["coffee", "brunch", "outdoor seating", "wifi"],
+      "opening_hours": {
+        "monday": { "opens": "08:00", "closes": "20:00" },
+        "tuesday": { "opens": "08:00", "closes": "20:00" },
+        "wednesday": { "opens": "08:00", "closes": "20:00" },
+        "thursday": { "opens": "08:00", "closes": "20:00" },
+        "friday": { "opens": "08:00", "closes": "22:00" },
+        "saturday": { "opens": "09:00", "closes": "22:00" },
+        "sunday": { "opens": "09:00", "closes": "20:00" }
+      }
+    },
+    {
+      "name": "The Night Owl",
+      "description": "Popular nightclub featuring live music and craft cocktails.",
+      "category": "nightlife",
+      "latitude": 30.3195,
+      "longitude": 78.0352,
+      "address": "45 Rajpur Road",
+      "city": "Dehradun",
+      "images": [
+        "https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2",
+        "https://images.unsplash.com/photo-1572116469696-31de0f17cc34"
+      ],
+      "tags": ["nightlife", "music", "cocktails", "dancing"],
+      "opening_hours": {
+        "monday": { "opens": "18:00", "closes": "02:00" },
+        "tuesday": { "opens": "18:00", "closes": "02:00" },
+        "wednesday": { "opens": "18:00", "closes": "02:00" },
+        "thursday": { "opens": "18:00", "closes": "03:00" },
+        "friday": { "opens": "18:00", "closes": "04:00" },
+        "saturday": { "opens": "18:00", "closes": "04:00" },
+        "sunday": { "opens": "18:00", "closes": "02:00" }
+      }
+    },
+    {
+      "name": "Robber's Cave",
+      "description": "Robber's Cave, locally known as Guchhupani, is a unique river cave formation approximately 600 meters long, where a stream flows inside a cave. The cold water stream disappears under a boulder and reappears a few meters away, making it a natural wonder. The cave gets its name from the British era when it was allegedly used by robbers as a hideout.",
+      "category": "Nature",
+      "latitude": 30.3752,
+      "longitude": 78.0846,
+      "address": "Guchhupani, Malsi, Anarwala, Dehradun, Uttarakhand 248001",
+      "city": "Dehradun",
+      "images": [
+        "https://upload.wikimedia.org/wikipedia/commons/9/9e/Robber%27s_Cave%2C_Dehradun.jpg",
+        "https://www.holidify.com/images/cmsuploads/compressed/shutterstock_1255228368_20191024174904.jpg"
+      ],
+      "tags": ["cave", "stream", "nature", "hiking", "picnic", "adventure"],
+      "opening_hours": {
+        "monday": "8:00-18:00",
+        "tuesday": "8:00-18:00",
+        "wednesday": "8:00-18:00",
+        "thursday": "8:00-18:00",
+        "friday": "8:00-18:00",
+        "saturday": "8:00-18:00",
+        "sunday": "8:00-18:00"
+      }
+    },
+    {
+      "name": "Mindrolling Monastery",
+      "description": "One of the largest Buddhist centers in India, Mindrolling Monastery features stunning Tibetan architecture, beautiful gardens, and a 220-foot tall Great Stupa of Lord Buddha containing relics and murals depicting Buddha's life. Founded in 1965, it's an important center for Buddhist learning and houses one of the largest Buddhist libraries in India.",
+      "category": "Religious",
+      "latitude": 30.2696,
+      "longitude": 78.0452,
+      "address": "PO Clement Town, Dehradun, Uttarakhand 248002",
+      "city": "Dehradun",
+      "images": [
+        "https://upload.wikimedia.org/wikipedia/commons/6/63/Mindrolling_Monastery_Dehradun.jpg",
+        "https://www.holidify.com/images/cmsuploads/compressed/Mindrolling_stupa_near_dehradun_india_20190219181257.jpg"
+      ],
+      "tags": [
+        "buddhist",
+        "monastery",
+        "spiritual",
+        "architecture",
+        "peaceful",
+        "stupa"
+      ],
+      "opening_hours": {
+        "monday": "9:00-18:00",
+        "tuesday": "9:00-18:00",
+        "wednesday": "9:00-18:00",
+        "thursday": "9:00-18:00",
+        "friday": "9:00-18:00",
+        "saturday": "9:00-18:00",
+        "sunday": "9:00-18:00"
+      }
+    },
+    {
+      "name": "Tapkeshwar Temple",
+      "description": "Tapkeshwar Temple is a sacred Hindu shrine dedicated to Lord Shiva. It's unique as the main Shiva lingam is placed inside a natural cave, and water continuously drips on it from the ceiling of the cave, giving it the name 'Tapkeshwar' (tap means drip). The temple is surrounded by picturesque hills and is believed to be where Guru Dronacharya of Mahabharata performed penance.",
+      "category": "Religious",
+      "latitude": 30.3255,
+      "longitude": 78.0322,
+      "address": "Garhi Cantonment, Dehradun, Uttarakhand 248003",
+      "city": "Dehradun",
+      "images": [
+        "https://www.holidify.com/images/cmsuploads/compressed/attr_1773_20190213121716.jpg",
+        "https://upload.wikimedia.org/wikipedia/commons/7/7d/Tapkeshwar_Mahadev_Temple%2C_Dehradun_01.jpg"
+      ],
+      "tags": ["hindu", "temple", "cave", "spiritual", "shiva", "historical"],
+      "opening_hours": {
+        "monday": "6:00-20:00",
+        "tuesday": "6:00-20:00",
+        "wednesday": "6:00-20:00",
+        "thursday": "6:00-20:00",
+        "friday": "6:00-20:00",
+        "saturday": "6:00-20:00",
+        "sunday": "6:00-20:00"
+      }
+    },
+    {
+      "name": "Paltan Bazaar",
+      "description": "Paltan Bazaar is Dehradun's busiest and most famous shopping street, stretching from the Clock Tower to the Railway Station. This vibrant market offers everything from local handicrafts and woolens to jewelry, electronics, and delicious street food including the famous Dehradun bakery items. Perfect for experiencing the local culture and shopping for souvenirs like Basmati rice and local handicrafts.",
+      "category": "Shopping",
+      "latitude": 30.3253,
+      "longitude": 78.0413,
+      "address": "Paltan Bazaar Road, Near Clock Tower, Dehradun, Uttarakhand 248001",
+      "city": "Dehradun",
+      "images": [
+        "https://assets.traveltriangle.com/blog/wp-content/uploads/2018/05/paltan.jpg",
+        "https://www.trawell.in/admin/images/upload/148599128Dehradun_Paltan_Bazaar_Main.jpg"
+      ],
+      "tags": ["shopping", "market", "food", "local", "souvenirs", "crowded"],
+      "opening_hours": {
+        "monday": "10:00-21:00",
+        "tuesday": "10:00-21:00",
+        "wednesday": "10:00-21:00",
+        "thursday": "10:00-21:00",
+        "friday": "10:00-21:00",
+        "saturday": "10:00-21:00",
+        "sunday": "10:00-21:00"
+      }
+    },
+    {
+      "name": "Lachhiwala",
+      "description": "Lachhiwala, now officially known as Nature Park, is a popular picnic spot known for its natural water pools surrounded by sal forests. Located about 22 km from the city center, visitors can enjoy swimming in the clear water pools, hiking in the forests, or simply relaxing in the serene natural environment. The area is also famous for bird watching with over 50 species of birds found here.",
+      "category": "Nature",
+      "latitude": 30.2417,
+      "longitude": 78.1483,
+      "address": "Doiwala, Forest Research Institute Range, Dehradun, Uttarakhand 248140",
+      "city": "Dehradun",
+      "images": [
+        "https://www.holidify.com/images/cmsuploads/compressed/attr_1769_20190213121358.jpg"
+      ],
+      "tags": [
+        "swimming",
+        "picnic",
+        "forest",
+        "nature",
+        "relaxation",
+        "bird watching"
+      ],
+      "opening_hours": {
+        "monday": "7:00-19:00",
+        "tuesday": "7:00-19:00",
+        "wednesday": "7:00-19:00",
+        "thursday": "7:00-19:00",
+        "friday": "7:00-19:00",
+        "saturday": "7:00-19:00",
+        "sunday": "7:00-19:00"
+      }
+    }
+  ]
+}
