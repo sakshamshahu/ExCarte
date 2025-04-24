@@ -26,6 +26,18 @@ export const api = {
       return response.json();
     },
 
+    createProfileWithPreferences: async (userData: any, preferences: any) => {
+      const response = await fetch(`${API_URL}/auth/update-profile-and-preferences`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ ...userData, preferences })
+      });
+      if (!response.ok) throw new Error('Failed to create user profile with preferences');
+      return response.json();
+    },
+
     getProfile: async (authId: string) => {
       const response = await fetch(`${API_URL}/auth/profile/${authId}`);
       if (!response.ok) {
@@ -115,8 +127,8 @@ export const api = {
       return response.json();
     },
 
-    update: async (reviewId: string, data: any) => {
-      const response = await fetch(`${API_URL}/reviews/${reviewId}`, {
+    update: async (userId: string, placeId: string, data: any) => {
+      const response = await fetch(`${API_URL}/reviews/${userId}/${placeId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -127,8 +139,8 @@ export const api = {
       return response.json();
     },
 
-    delete: async (reviewId: string) => {
-      const response = await fetch(`${API_URL}/reviews/${reviewId}`, {
+    delete: async (userId: string, placeId: string)  => {
+      const response = await fetch(`${API_URL}/reviews/${userId}/${placeId}`, {
         method: 'DELETE'
       });
       if (!response.ok) throw new Error('Failed to delete review');

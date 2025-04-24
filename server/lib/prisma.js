@@ -1,7 +1,7 @@
-// import { PrismaClient as SupabasePrismaClientClient } from '../prisma/generated/gcp-client/index.js';
-import { PrismaClient as SupabasePrismaClient } from '../prisma/generated/supabase-client/index.js';
+import { PrismaClient as LocalhostPrisma } from '../prisma/generated/localhost-client/index.js';
+import { PrismaClient as SupabasePrisma } from '../prisma/generated/supabase-client/index.js';
 
-// const SupabasePrismaClient = new SupabasePrismaClientClient();
-const SupabasePrisma = new SupabasePrismaClient();
+const SupabasePrismaClient = new SupabasePrisma();
+const LocalhostClient = new LocalhostPrisma();
 
-export { SupabasePrismaClient, SupabasePrisma };
+export { SupabasePrismaClient, LocalhostClient };

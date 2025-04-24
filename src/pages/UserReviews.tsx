@@ -39,14 +39,14 @@ const UserReviews = () => {
     fetchUserReviews();
   }, [user, navigate]);
 
-  const handleDeleteReview = async (reviewId: string) => {
+  const handleDeleteReview = async (userId: string, placeId: string) => {
     setIsDeleting(true);
     try {
-      await api.reviews.delete(reviewId);
+      await api.reviews.delete(userId, placeId);
       toast.success('Review deleted successfully');
       
       // Remove the deleted review from the list
-      setReviews(reviews.filter(review => review.id !== reviewId));
+      setReviews(reviews.filter(review => review.place_id !== placeId));
     } catch (error) {
       console.error('Error deleting review:', error);
       toast.error('Failed to delete review');
@@ -122,7 +122,7 @@ const UserReviews = () => {
                         View Place
                       </button>
                       <button
-                        onClick={() => handleDeleteReview(review.id)}
+                        onClick={() => handleDeleteReview(user.id, review.place_id)}
                         disabled={isDeleting}
                         className="px-3 py-1 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
                       >

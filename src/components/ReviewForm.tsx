@@ -41,7 +41,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ placeId, onReviewSubmitted, exi
     try {
       if (existingReview) {
         // Update existing review
-        await api.reviews.update(existingReview.id, {
+        await api.reviews.update(user.id, placeId, {
           rating,
           comment
         });

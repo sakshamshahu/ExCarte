@@ -1,19 +1,19 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 // import { motion } from 'framer-motion';
-import { Star, ArrowLeft } from 'lucide-react';
-import { api } from '../lib/api';
-import { useStore } from '../store';
-import Spinner from '../components/Spinner';
-import toast from 'react-hot-toast';
-import ReviewItem from '../components/ReviewItem';
-import ReviewForm from '../components/ReviewForm';
+import { Star, ArrowLeft } from "lucide-react";
+import { api } from "../lib/api";
+import { useStore } from "../store";
+import Spinner from "../components/Spinner";
+import toast from "react-hot-toast";
+import ReviewItem from "../components/ReviewItem";
+import ReviewForm from "../components/ReviewForm";
 
 const PlaceReviews = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useStore();
-  
+
   const [place, setPlace] = useState<any>(null);
   const [reviews, setReviews] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -24,71 +24,76 @@ const PlaceReviews = () => {
   useEffect(() => {
     const fetchPlaceAndReviews = async () => {
       if (!id) return;
-      
+
       setIsLoading(true);
       try {
         const placeData = await api.places.getById(id);
         setPlace(placeData);
-        
+
         const reviewsData = await api.reviews.getForPlace(id);
         setReviews(reviewsData);
-        
+
         // Check if current user has already reviewed this place
         if (user) {
-          const userReviewData = reviewsData.find((review: any) => review.user_id === user.id);
+          const userReviewData = reviewsData.find(
+            (review: any) => review.user_id === user.id
+          );
           if (userReviewData) {
             setUserReview(userReviewData);
           }
         }
       } catch (error) {
-        console.error('Error fetching place and reviews:', error);
-        toast.error('Failed to load place information');
+        console.error("Error fetching place and reviews:", error);
+        toast.error("Failed to load place information");
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     fetchPlaceAndReviews();
   }, [id, user]);
 
   const handleReviewSubmitted = async () => {
     if (!id) return;
-    
+
     try {
       // Refresh reviews
       const reviewsData = await api.reviews.getForPlace(id);
       setReviews(reviewsData);
-      
+
       // Update place data to get new average rating
       const placeData = await api.places.getById(id);
       setPlace(placeData);
-      
+
       // Check if current user has a review now
       if (user) {
-        const userReviewData = reviewsData.find((review: any) => review.user_id === user.id);
+        const userReviewData = reviewsData.find(
+          (review: any) => review.user_id === user.id
+        );
         setUserReview(userReviewData);
       }
-      
+
       setIsEditingReview(false);
     } catch (error) {
-      console.error('Error refreshing data:', error);
+      console.error("Error refreshing data:", error);
     }
   };
 
   const handleDeleteReview = async () => {
     if (!userReview) return;
-    
+
     setIsDeleting(true);
     try {
-      await api.reviews.delete(userReview.id);
-      toast.success('Review deleted successfully');
-      
+      if (!id || !user) return;
+      await api.reviews.delete(user.id, id);
+      toast.success("Review deleted successfully");
+
       // Refresh data
       setUserReview(null);
       await handleReviewSubmitted();
     } catch (error) {
-      console.error('Error deleting review:', error);
-      toast.error('Failed to delete review');
+      console.error("Error deleting review:", error);
+      toast.error("Failed to delete review");
     } finally {
       setIsDeleting(false);
     }
@@ -106,9 +111,11 @@ const PlaceReviews = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold text-gray-900">Place not found</h2>
+          <h2 className="text-2xl font-semibold text-gray-900">
+            Place not found
+          </h2>
           <button
-            onClick={() => navigate('/explore')}
+            onClick={() => navigate("/explore")}
             className="mt-4 inline-flex items-center text-indigo-600 hover:text-indigo-800"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
@@ -129,16 +136,20 @@ const PlaceReviews = () => {
           <ArrowLeft className="h-4 w-4 mr-1" />
           Back
         </button>
-        
+
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <div className="flex items-start justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{place.name}</h1>
               <div className="flex items-center mt-2">
                 <Star className="h-5 w-5 text-yellow-400 fill-current" />
-                <span className="ml-1 font-medium">{place.average_rating.toFixed(1)}</span>
+                <span className="ml-1 font-medium">
+                  {place.average_rating.toFixed(1)}
+                </span>
                 <span className="mx-1">•</span>
-                <span className="text-gray-600">{place.total_reviews} reviews</span>
+                <span className="text-gray-600">
+                  {place.total_reviews} reviews
+                </span>
               </div>
             </div>
             <img
@@ -148,13 +159,15 @@ const PlaceReviews = () => {
             />
           </div>
         </div>
-        
+
         {user && (
           <div className="mb-8">
             {userReview && !isEditingReview ? (
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Your Review</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Your Review
+                  </h3>
                   <div className="flex space-x-2">
                     <button
                       onClick={() => setIsEditingReview(true)}
@@ -167,7 +180,7 @@ const PlaceReviews = () => {
                       disabled={isDeleting}
                       className="px-3 py-1 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
                     >
-                      {isDeleting ? 'Deleting...' : 'Delete'}
+                      {isDeleting ? "Deleting..." : "Delete"}
                     </button>
                   </div>
                 </div>
@@ -182,12 +195,12 @@ const PlaceReviews = () => {
             )}
           </div>
         )}
-        
+
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-6">
             All Reviews ({reviews.length})
           </h2>
-          
+
           {reviews.length > 0 ? (
             <div className="space-y-6">
               {reviews.map((review) => (
