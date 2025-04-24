@@ -1,5 +1,5 @@
 import express from "express";
-import { GCPprisma } from "../lib/prisma.js";
+import { SupabasePrismaClient } from "../lib/prisma.js";
 
 const router = express.Router();
 
@@ -7,7 +7,7 @@ const router = express.Router();
 router.get("/place/:placeId", async (req, res) => {
   try {
     const { placeId } = req.params;
-    const reviews = await GCPprisma.reviews.findMany({
+    const reviews = await SupabasePrismaClient.reviews.findMany({
       where: { place_id: placeId },
       include: {
         user: true,
@@ -30,7 +30,7 @@ router.post("/", async (req, res) => {
     const { userId, placeId, rating, comment } = req.body;
 
     // Validate user exists
-    const user = await GCPprisma.users.findUnique({
+    const user = await SupabasePrismaClient.users.findUnique({
       where: { auth_id: userId },
     });
 
@@ -39,7 +39,7 @@ router.post("/", async (req, res) => {
     }
 
     // Validate place exists
-    const place = await GCPprisma.places.findUnique({
+    const place = await SupabasePrismaClient.places.findUnique({
       where: { id: placeId },
     });
 
@@ -48,7 +48,7 @@ router.post("/", async (req, res) => {
     }
 
     // Check if user already has a review for this place
-    const existingReview = await GCPprisma.reviews.findFirst({
+    const existingReview = await SupabasePrismaClient.reviews.findFirst({
       where: {
         user_id: userId,
         place_id: placeId,
@@ -61,7 +61,7 @@ router.post("/", async (req, res) => {
         .json({ error: "You have already reviewed this place" });
     }
 
-    const review = await GCPprisma.reviews.create({
+    const review = await SupabasePrismaClient.reviews.create({
       data: {
         user_id: userId,
         place_id: placeId,
@@ -75,7 +75,7 @@ router.post("/", async (req, res) => {
     });
 
     // Update place average rating and total reviews
-    await GCPprisma.places.update({
+    await SupabasePrismaClient.places.update({
       where: { id: placeId },
       data: {
         average_rating: {
@@ -117,7 +117,7 @@ router.put("/:id", async (req, res) => {
     const { id } = req.params;
     const { rating, comment } = req.body;
 
-    const review = await GCPprisma.reviews.update({
+    const review = await SupabasePrismaClient.reviews.update({
       where: { id },
       data: {
         rating,
@@ -131,7 +131,7 @@ router.put("/:id", async (req, res) => {
     });
 
     // Update place average rating
-    await GCPprisma.places.update({
+    await SupabasePrismaClient.places.update({
       where: { id: review.place_id },
       data: {
         average_rating: {
@@ -153,7 +153,7 @@ router.delete("/:id", async (req, res) => {
     const { id } = req.params;
 
     // Get the review to find the place_id
-    const review = await GCPprisma.reviews.findUnique({
+    const review = await SupabasePrismaClient.reviews.findUnique({
       where: { id },
     });
 
@@ -164,12 +164,12 @@ router.delete("/:id", async (req, res) => {
     const placeId = review.place_id;
 
     // Delete the review
-    await GCPprisma.reviews.delete({
+    await SupabasePrismaClient.reviews.delete({
       where: { id },
     });
 
     // Update place average rating and total reviews
-    await GCPprisma.places.update({
+    await SupabasePrismaClient.places.update({
       where: { id: placeId },
       data: {
         average_rating: {
@@ -190,7 +190,7 @@ router.delete("/:id", async (req, res) => {
 
 // Helper function to calculate average rating
 async function calculateAverageRating(placeId) {
-  const result = await GCPprisma.reviews.aggregate({
+  const result = await SupabasePrismaClient.reviews.aggregate({
     where: { place_id: placeId },
     _avg: {
       rating: true,

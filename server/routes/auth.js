@@ -1,5 +1,5 @@
 import express from 'express';
-import { GCPprisma, SupabasePrisma } from '../lib/prisma.js';
+import { SupabasePrismaClient, SupabasePrisma } from '../lib/prisma.js';
 
 const router = express.Router();
 
@@ -9,7 +9,7 @@ router.post('/profile', async (req, res) => {
     const { auth_id, first_name, last_name, birth_date, explorer_type, email } = req.body;
     
     // Create user profile
-    const userData = await GCPprisma.users.create({
+    const userData = await SupabasePrismaClient.users.create({
       data: {
         auth_id,
         first_name,
@@ -56,9 +56,9 @@ router.post('/preferences', async (req, res) => {
     }));
 
     // Create all preferences in a transaction
-    const result = await GCPprisma.$transaction(
+    const result = await SupabasePrismaClient.$transaction(
       preferencesData.map(prefData => 
-        GCPprisma.user_preferences.create({
+        SupabasePrismaClient.user_preferences.create({
           data: prefData
         })
       )
@@ -87,7 +87,7 @@ router.get('/profile/:auth_id', async (req, res) => {
   try {
     const { auth_id } = req.params;
     
-    const userData = await GCPprisma.users.findUnique({
+    const userData = await SupabasePrismaClient.users.findUnique({
       where: { auth_id },
       include: {
         preferences: true

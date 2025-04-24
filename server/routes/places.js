@@ -1,5 +1,5 @@
 import express from "express";
-import { GCPprisma, SupabasePrisma } from "../lib/prisma.js";
+import { SupabasePrismaClient, SupabasePrisma } from "../lib/prisma.js";
 import placesData from "../config/places.json" assert { type: "json" };
 
 const router = express.Router();
@@ -177,7 +177,7 @@ router.post("/seed", async (req, res) => {
       const batch = placesData.places.slice(i, i + BATCH_SIZE);
 
       // Use transaction for each batch on primary DB
-      await GCPprisma.$transaction(async (tx) => {
+      await SupabasePrismaClient.$transaction(async (tx) => {
         // Process each place in the current batch
         const batchPromises = batch.map(async (place) => {
           try {
@@ -416,7 +416,7 @@ router.get("/", async (req, res) => {
       };
     }
 
-    const places = await GCPprisma.places.findMany({
+    const places = await SupabasePrismaClient.places.findMany({
       where: whereClause,
       include: {
         reviews: {
@@ -466,7 +466,7 @@ router.get("/heatmap", async (req, res) => {
       whereClause.category = category;
     }
 
-    const places = await GCPprisma.places.findMany({
+    const places = await SupabasePrismaClient.places.findMany({
       where: whereClause,
       select: {
         id: true,
@@ -493,7 +493,7 @@ router.get("/heatmap", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const place = await GCPprisma.places.findUnique({
+    const place = await SupabasePrismaClient.places.findUnique({
       where: { id },
       include: {
         reviews: {

@@ -1,5 +1,5 @@
 import express from 'express';
-import { GCPprisma }  from '../lib/prisma.js';
+import { SupabasePrismaClient }  from '../lib/prisma.js';
 
 const router = express.Router();
 
@@ -7,7 +7,7 @@ const router = express.Router();
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const user = await GCPprisma.users.findUnique({
+    const user = await SupabasePrismaClient.users.findUnique({
       where: { id },
       include: {
         preferences: true,
@@ -37,7 +37,7 @@ router.post('/:id/preferences', async (req, res) => {
     const { preferences } = req.body;
 
     // Delete existing preferences
-    await GCPprisma.user_preferences.deleteMany({
+    await SupabasePrismaClient.user_preferences.deleteMany({
       where: { user_id: id }
     });
 
@@ -48,11 +48,11 @@ router.post('/:id/preferences', async (req, res) => {
       interest_level: Number(level)
     }));
 
-    await GCPprisma.user_preferences.createMany({
+    await SupabasePrismaClient.user_preferences.createMany({
       data: preferencesData
     });
 
-    const updatedUser = await GCPprisma.users.findUnique({
+    const updatedUser = await SupabasePrismaClient.users.findUnique({
       where: { id },
       include: {
         preferences: true
