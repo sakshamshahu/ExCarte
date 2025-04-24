@@ -1,9 +1,10 @@
 import express from "express";
-import { SupabasePrismaClient, LocalhostClient } from "../lib/prisma.js";
+import { SupabasePrismaClient } from "../lib/prisma.js";
 import placesData from "../config/places.json" assert { type: "json" };
+import { getPrimaryClient } from "../lib/avaliablity.js";
 
 const router = express.Router();
-
+const PrismaClient = await getPrimaryClient();
 // handling large datasets (20,000+ places)
 // Optimized seeder that handles both GCP and Supabase databases
 const SUPABASE_BATCH_SIZE = 100; // Smaller batch size to avoid timeout
@@ -170,7 +171,7 @@ router.post("/seed", async (req, res) => {
     for (let i = 0; i < totalPlaces; i += BATCH_SIZE) {
       const batch = placesData.places.slice(i, i + BATCH_SIZE);
 
-      await LocalhostClient.$transaction(async (tx) => {
+      await PrismaClient.client.$transaction(async (tx) => {
         const batchPromises = batch.map(async (place) => {
           try {
             const placeData = prepareCreateData(place);
@@ -231,9 +232,11 @@ router.post("/seed", async (req, res) => {
       })
     );
 
-    seedSupabaseInBackground(successfulPlaces).catch((error) => {
-      console.error("Background Supabase seeding error:", error);
-    });
+    if (PrismaClient.useLocalhost) {
+      seedSupabaseInBackground(successfulPlaces).catch((error) => {
+        console.error("Background Supabase seeding error:", error);
+      });
+    }
   } catch (error) {
     console.error("Fatal error seeding primary database:", error);
     if (!res.writableEnded) {
@@ -392,7 +395,7 @@ router.get("/", async (req, res) => {
       };
     }
 
-    const places = await LocalhostClient.places.findMany({
+    const places = await PrismaClient.client.places.findMany({
       where: whereClause,
       include: {
         reviews: {
@@ -406,7 +409,7 @@ router.get("/", async (req, res) => {
       },
     });
 
-    const places2 = await LocalhostClient.places.findMany({
+    const places2 = await PrismaClient.client.places.findMany({
       where: {
         category: category || undefined,
         name: search ? { contains: search } : undefined,
@@ -439,7 +442,7 @@ router.get("/heatmap", async (req, res) => {
       whereClause.category = category;
     }
 
-    const places = await LocalhostClient.places.findMany({
+    const places = await PrismaClient.client.places.findMany({
       where: whereClause,
       select: {
         id: true,
@@ -466,7 +469,7 @@ router.get("/heatmap", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const place = await LocalhostClient.places.findUnique({
+    const place = await PrismaClient.client.places.findUnique({
       where: { id },
       include: {
         reviews: {

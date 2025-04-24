@@ -1,13 +1,14 @@
 import express from "express";
-import { LocalhostClient, SupabasePrismaClient } from "../lib/prisma.js";
+import { SupabasePrismaClient } from "../lib/prisma.js";
+import { getPrimaryClient } from "../lib/avaliablity.js";
 
 const router = express.Router();
-
+const PrismaClient = await getPrimaryClient();
 // Get user profile
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const user = await LocalhostClient.users.findUnique({
+    const user = await PrismaClient.client.users.findUnique({
       where: { id },
       include: {
         preferences: true,
@@ -33,7 +34,7 @@ router.get("/:id", async (req, res) => {
 router.get("/:id/reviews", async (req, res) => {
   try {
     const { id } = req.params;
-    const reviews = await LocalhostClient.reviews.findMany({
+    const reviews = await PrismaClient.client.reviews.findMany({
       where: { user_id: id },
       include: {
         place: true,
@@ -58,7 +59,7 @@ router.post("/:id/preferences", async (req, res) => {
     const { preferences } = req.body;
 
     // Delete existing preferences
-    await LocalhostClient.user_preferences.deleteMany({
+    await PrismaClient.client.user_preferences.deleteMany({
       where: { user_id: id },
     });
 
@@ -71,11 +72,11 @@ router.post("/:id/preferences", async (req, res) => {
       })
     );
 
-    await LocalhostClient.user_preferences.createMany({
+    await PrismaClient.client.user_preferences.createMany({
       data: preferencesData,
     });
 
-    const updatedUser = await LocalhostClient.users.findUnique({
+    const updatedUser = await PrismaClient.client.users.findUnique({
       where: { id },
       include: {
         preferences: true,
@@ -83,18 +84,20 @@ router.post("/:id/preferences", async (req, res) => {
     });
 
     res.end(updatedUser);
-    console.info("Started updating user preferences in Supabase");
-    // Update user preferences in Supabase
-    const supabaseResult =
-      await SupabasePrismaClient.user_preferences.deleteMany({
-        where: { user_id: id },
+    if (PrismaClient.useLocalhost) {
+      console.info("Started updating user preferences in Supabase");
+      // Update user preferences in Supabase
+      const supabaseResult =
+        await SupabasePrismaClient.user_preferences.deleteMany({
+          where: { user_id: id },
+        });
+      console.log("User preferences updated in Supabase:", supabaseResult);
+      // Create new preferences in Supabase
+      await SupabasePrismaClient.user_preferences.createMany({
+        data: preferencesData,
       });
-    console.log("User preferences updated in Supabase:", supabaseResult);
-    // Create new preferences in Supabase
-    await SupabasePrismaClient.user_preferences.createMany({
-      data: preferencesData,
-    });
-    console.log("User preferences created in Supabase:", supabaseResult);
+      console.log("User preferences created in Supabase:", supabaseResult);
+    }
   } catch (error) {
     console.error("Error updating preferences:", error);
     res.status(500).json({ error: "Failed to update preferences" });
