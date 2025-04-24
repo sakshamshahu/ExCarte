@@ -1,6 +1,7 @@
 {
   "places": [
     {
+      "id": "1",
       "name": "Café Ivy",
       "googleMapsUri": "https://goo.gl/maps/sampleCafeIvy",
       "websiteUri": "https://www.cafeivy.com",
@@ -26,6 +27,7 @@
       }
     },
     {
+      "id": "2",
       "name": "The Night Owl",
       "description": "Popular nightclub featuring live music and craft cocktails.",
       "category": "nightlife",
@@ -49,6 +51,7 @@
       }
     },
     {
+      "id": "3",
       "name": "Robber's Cave",
       "description": "Robber's Cave, locally known as Guchhupani, is a unique river cave formation approximately 600 meters long, where a stream flows inside a cave. The cold water stream disappears under a boulder and reappears a few meters away, making it a natural wonder. The cave gets its name from the British era when it was allegedly used by robbers as a hideout.",
       "category": "Nature",
@@ -72,6 +75,7 @@
       }
     },
     {
+      "id": "4",
       "name": "Mindrolling Monastery",
       "description": "One of the largest Buddhist centers in India, Mindrolling Monastery features stunning Tibetan architecture, beautiful gardens, and a 220-foot tall Great Stupa of Lord Buddha containing relics and murals depicting Buddha's life. Founded in 1965, it's an important center for Buddhist learning and houses one of the largest Buddhist libraries in India.",
       "category": "Religious",
@@ -102,6 +106,7 @@
       }
     },
     {
+      "id": "5",
       "name": "Tapkeshwar Temple",
       "description": "Tapkeshwar Temple is a sacred Hindu shrine dedicated to Lord Shiva. It's unique as the main Shiva lingam is placed inside a natural cave, and water continuously drips on it from the ceiling of the cave, giving it the name 'Tapkeshwar' (tap means drip). The temple is surrounded by picturesque hills and is believed to be where Guru Dronacharya of Mahabharata performed penance.",
       "category": "Religious",
@@ -125,6 +130,7 @@
       }
     },
     {
+      "id": "6",
       "name": "Paltan Bazaar",
       "description": "Paltan Bazaar is Dehradun's busiest and most famous shopping street, stretching from the Clock Tower to the Railway Station. This vibrant market offers everything from local handicrafts and woolens to jewelry, electronics, and delicious street food including the famous Dehradun bakery items. Perfect for experiencing the local culture and shopping for souvenirs like Basmati rice and local handicrafts.",
       "category": "Shopping",
@@ -148,6 +154,7 @@
       }
     },
     {
+      "id": "7",
       "name": "Lachhiwala",
       "description": "Lachhiwala, now officially known as Nature Park, is a popular picnic spot known for its natural water pools surrounded by sal forests. Located about 22 km from the city center, visitors can enjoy swimming in the clear water pools, hiking in the forests, or simply relaxing in the serene natural environment. The area is also famous for bird watching with over 50 species of birds found here.",
       "category": "Nature",

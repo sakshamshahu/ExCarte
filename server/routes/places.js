@@ -1,5 +1,5 @@
 import express from "express";
-import { SupabasePrismaClient, SupabasePrisma } from "../lib/prisma.js";
+import { SupabasePrismaClient, LocalhostClient } from "../lib/prisma.js";
 import placesData from "../config/places.json" assert { type: "json" };
 
 const router = express.Router();
@@ -17,9 +17,9 @@ function checkIfNotValid(value) {
     value === undefined
   );
 }
-function prepareCreateData(place) {
-  // Base data with required fields
-  const baseData = {
+function prepareCreateData(place, id = null) {
+  return {
+    id: id || place.id, // Use the provided ID or fallback to the place's ID
     name: place.name,
     latitude: parseFloat(place.latitude) || 0,
     longitude: parseFloat(place.longitude) || 0,
@@ -151,13 +151,9 @@ function prepareCreateData(place) {
     google_total_reviews: parseInt(place.google_total_reviews) || 0,
     heat_score: parseFloat(place.heat_score) || 0,
   };
-
-  console.log(`Preparing data for place: ${place.name}`);
-  console.log(`googleUri ${baseData.googleMapsUri}`);
-  return baseData;
 }
+
 router.post("/seed", async (req, res) => {
-  // Start a response early to prevent timeout
   res.writeHead(200, {
     "Content-Type": "application/json",
     "Transfer-Encoding": "chunked",
@@ -169,57 +165,47 @@ router.post("/seed", async (req, res) => {
     let successCount = 0;
     let errorCount = 0;
 
-    // Track which places were successfully saved to GCP
     const successfulPlaces = [];
 
-    // Process in batches to avoid memory issues
     for (let i = 0; i < totalPlaces; i += BATCH_SIZE) {
       const batch = placesData.places.slice(i, i + BATCH_SIZE);
 
-      // Use transaction for each batch on primary DB
-      await SupabasePrismaClient.$transaction(async (tx) => {
-        // Process each place in the current batch
+      await LocalhostClient.$transaction(async (tx) => {
         const batchPromises = batch.map(async (place) => {
           try {
             const placeData = prepareCreateData(place);
 
-            // Check if place exists
             const existingPlace = await tx.places.findFirst({
-              where: { name: place.name },
+              where: { id: place.id },
             });
 
             if (existingPlace) {
-              // Update existing place
               await tx.places.update({
                 where: { id: existingPlace.id },
                 data: placeData,
               });
             } else {
-              // Create new place
               await tx.places.create({
                 data: placeData,
               });
             }
 
-            // Add to successful places for Supabase seeding later
             successfulPlaces.push(place);
             successCount++;
           } catch (placeError) {
             errorCount++;
             console.error(
-              `Error processing place "${place.name}" in GCP:`,
+              `Error processing place "${place.name}" in Localhost:`,
               placeError
             );
           }
         });
 
-        // Wait for all places in the batch to be processed
         await Promise.all(batchPromises);
       });
 
       processedCount += batch.length;
 
-      // Send progress updates to the client
       res.write(
         JSON.stringify({
           progress: {
@@ -233,7 +219,6 @@ router.post("/seed", async (req, res) => {
       );
     }
 
-    // Send final response for GCP database (primary)
     res.end(
       JSON.stringify({
         message: "Primary database seeding completed",
@@ -246,7 +231,6 @@ router.post("/seed", async (req, res) => {
       })
     );
 
-    // Now seed Supabase in the background (non-blocking)
     seedSupabaseInBackground(successfulPlaces).catch((error) => {
       console.error("Background Supabase seeding error:", error);
     });
@@ -273,35 +257,31 @@ async function seedSupabaseInBackground(places) {
 
   console.log(`Starting background Supabase seeding for ${totalPlaces} places`);
 
-  // Process in smaller batches
   for (let i = 0; i < totalPlaces; i += SUPABASE_BATCH_SIZE) {
     const batch = places.slice(i, i + SUPABASE_BATCH_SIZE);
 
-    // Handle each place individually without transaction
     for (const place of batch) {
       try {
-        const placeData = prepareCreateData(place);
-        // Check if place exists (outside transaction)
-        const existingPlace = await SupabasePrisma.places.findFirst({
-          where: { name: place.name },
+        const placeData = prepareCreateData(place, place.id);
+
+        const existingPlace = await SupabasePrismaClient.places.findFirst({
+          where: { id: place.id },
         });
 
         if (existingPlace) {
-          // Update existing place
-          await SupabasePrisma.places.update({
+          await SupabasePrismaClient.places.update({
             where: { id: existingPlace.id },
             data: placeData,
           });
         } else {
-          // Create new place
-          await SupabasePrisma.places.create({
+          await SupabasePrismaClient.places.create({
             data: placeData,
           });
         }
         successCount++;
       } catch (placeError) {
         errorCount++;
-        failedPlaces.push(place); // Track failed places for potential retry
+        failedPlaces.push(place);
         console.error(
           `Error processing place "${place.name}" in Supabase:`,
           placeError
@@ -311,7 +291,6 @@ async function seedSupabaseInBackground(places) {
 
     processedCount += batch.length;
 
-    // Log progress periodically
     if (
       processedCount % (SUPABASE_BATCH_SIZE * 5) === 0 ||
       processedCount === totalPlaces
@@ -323,7 +302,6 @@ async function seedSupabaseInBackground(places) {
       );
     }
 
-    // Add small delay between batches to avoid overwhelming the connection
     if (i + SUPABASE_BATCH_SIZE < totalPlaces) {
       await new Promise((resolve) => setTimeout(resolve, 50));
     }
@@ -333,9 +311,7 @@ async function seedSupabaseInBackground(places) {
     `Completed background Supabase seeding. Success: ${successCount}, Errors: ${errorCount}`
   );
 
-  // Store failed places for potential retry
   if (failedPlaces.length > 0) {
-    // Store in-memory or in a cache/temp storage
     global.failedSupabasePlaces = failedPlaces;
     console.log(
       `Stored ${failedPlaces.length} failed places for potential retry`
@@ -416,7 +392,7 @@ router.get("/", async (req, res) => {
       };
     }
 
-    const places = await SupabasePrismaClient.places.findMany({
+    const places = await LocalhostClient.places.findMany({
       where: whereClause,
       include: {
         reviews: {
@@ -430,7 +406,7 @@ router.get("/", async (req, res) => {
       },
     });
 
-    const places2 = await SupabasePrisma.places.findMany({
+    const places2 = await LocalhostClient.places.findMany({
       where: {
         category: category || undefined,
         name: search ? { contains: search } : undefined,
@@ -440,10 +416,7 @@ router.get("/", async (req, res) => {
       },
     });
 
-    res.json({
-      GCP: places,
-      Supabase: places2,
-    });
+    res.json(places);
   } catch (error) {
     console.error("Error fetching places:", error);
     res.status(500).json({ error: "Failed to fetch places" });
@@ -466,7 +439,7 @@ router.get("/heatmap", async (req, res) => {
       whereClause.category = category;
     }
 
-    const places = await SupabasePrismaClient.places.findMany({
+    const places = await LocalhostClient.places.findMany({
       where: whereClause,
       select: {
         id: true,
@@ -493,7 +466,7 @@ router.get("/heatmap", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const place = await SupabasePrismaClient.places.findUnique({
+    const place = await LocalhostClient.places.findUnique({
       where: { id },
       include: {
         reviews: {
