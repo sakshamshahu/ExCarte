@@ -5,9 +5,10 @@ import { api } from '../lib/api';
 import Map from '../components/Map';
 import PlaceCard from '../components/PlaceCard';
 import PlaceDetails from '../components/PlaceDetails';
-import { MapPin, Coffee, Music, Utensils, ShoppingBag, Search } from 'lucide-react';
+import { MapPin, Coffee, Music, Utensils, ShoppingBag, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import Spinner from '../components/Spinner';
 import { debounce } from 'lodash';
+import { Place } from '../types';
 
 const categories = [
   { id: 'all', name: 'All Places', icon: MapPin },
@@ -17,24 +18,40 @@ const categories = [
   { id: 'shopping', name: 'Shopping', icon: ShoppingBag },
 ];
 
+const PAGE_SIZE = 30; // Default page size
+
 const Explore = () => {
   const { places, setPlaces, selectedPlace, setSelectedPlace } = useStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [showDetails, setShowDetails] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const debouncedFetchPlaces = useCallback(
-    debounce(async (query: any, category: any) => {
+    debounce(async (query, category, page) => {
       setIsLoading(true);
       try {
-        const params: Record<string, string> = {};
+        const params : Record<string, string> = {
+          page: String(page),
+          pageSize: String(PAGE_SIZE),
+        };
         if (category !== 'all') params.category = category;
         if (query) params.search = query;
 
         const data = await api.places.getAll(params);
         console.log('Fetched places:', data);
-        setPlaces(data || []);
+        setPlaces(data.places || []);
+        
+        // Update pagination information
+        if (data.pagination) {
+          setTotalPages(data.pagination.totalPages);
+          // In case the API returns a different current page than requested
+          setCurrentPage(data.pagination.currentPage);
+        }
       } catch (error) {
         console.error('Error fetching places:', error);
       } finally {
@@ -44,14 +61,28 @@ const Explore = () => {
     [setPlaces]
   );
 
+  // Reset to page 1 when filters change
   useEffect(() => {
-    debouncedFetchPlaces(searchQuery, activeCategory);
-    return () => debouncedFetchPlaces.cancel();
-  }, [searchQuery, activeCategory, debouncedFetchPlaces]);
+    setCurrentPage(1);
+  }, [searchQuery, activeCategory]);
 
-  const handlePlaceSelect = (place: any) => {
+  // Fetch places when pagination, search or category changes
+  useEffect(() => {
+    debouncedFetchPlaces(searchQuery, activeCategory, currentPage);
+    return () => debouncedFetchPlaces.cancel();
+  }, [searchQuery, activeCategory, currentPage, debouncedFetchPlaces]);
+
+  const handlePlaceSelect = (place: Place) => {
     setSelectedPlace(place);
     setShowDetails(true);
+  };
+
+  const handlePageChange = (newPage : number) => {
+    // Prevent going below page 1 or above total pages
+    if (newPage < 1 || newPage > totalPages) return;
+    setCurrentPage(newPage);
+    // Scroll to top when changing pages
+    window.scrollTo(0, 0);
   };
 
   const memoizedMap = useMemo(
@@ -144,6 +175,73 @@ const Explore = () => {
                 </div>
               )}
             </AnimatePresence>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {places.length > 0 && (
+          <div className="flex justify-center items-center mt-24">
+            <div className="flex items-center space-x-4 sticky bottom-0 bg-white p-4 rounded-lg shadow-md t-12">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`flex items-center justify-center p-2 rounded-lg ${
+                  currentPage === 1
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              
+              <div className="flex items-center space-x-1">
+                {/* Show page numbers */}
+                {[...Array(totalPages)].map((_, index) => {
+                  const pageNumber = index + 1;
+                  
+                  // Always show first, last, current, and pages around current
+                  const showPage = 
+                    pageNumber === 1 || 
+                    pageNumber === totalPages || 
+                    (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1);
+                  
+                  // Show ellipsis
+                  if (!showPage) {
+                    // Show ellipsis only once for each gap
+                    if (pageNumber === 2 || pageNumber === totalPages - 1) {
+                      return <span key={pageNumber} className="px-2">...</span>;
+                    }
+                    return null;
+                  }
+                  
+                  return (
+                    <button
+                      key={pageNumber}
+                      onClick={() => handlePageChange(pageNumber)}
+                      className={`w-8 h-8 flex items-center justify-center rounded-md ${
+                        currentPage === pageNumber
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {pageNumber}
+                    </button>
+                  );
+                })}
+              </div>
+              
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`flex items-center justify-center p-2 rounded-lg ${
+                  currentPage === totalPages
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
           </div>
         )}
 

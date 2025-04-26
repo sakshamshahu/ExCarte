@@ -28,11 +28,9 @@ function prepareCreateData(place, id = null) {
     category: place.category || "",
     address: place.address || "",
     city: place.city || "",
-    images: Array.isArray(place.images) ? place.images : [],
-    tags: Array.isArray(place.tags) ? place.tags : [],
-    opening_hours: Array.isArray(place.opening_hours)
-      ? place.opening_hours
-      : [],
+    images: place.images ? JSON.parse(place.images) : [],
+    tags: place.tags ? JSON.parse(place.tags) : [],
+    opening_hours: place.opening_hours ? JSON.parse(place.opening_hours) : [],
     googleMapsUri: !checkIfNotValid(place.googleMapsUri)
       ? place.googleMapsUri
       : "",
@@ -148,8 +146,8 @@ function prepareCreateData(place, id = null) {
       : "",
     reviewsUri: !checkIfNotValid(place.reviewsUri) ? place.reviewsUri : "",
     photosUri: !checkIfNotValid(place.photosUri) ? place.photosUri : "",
-    google_average_rating: parseFloat(place.google_average_rating) || 0,
-    google_total_reviews: parseInt(place.google_total_reviews) || 0,
+    google_average_rating: parseFloat(place.average_rating) || 0,
+    google_total_reviews: parseInt(place.total_reviews) || 0,
     heat_score: parseFloat(place.heat_score) || 0,
   };
 }
@@ -364,16 +362,83 @@ router.post("/retry-supabase-seed", async (req, res) => {
   }
 });
 // Get all places with filters
+// Get paginated places
 router.get("/", async (req, res) => {
   try {
     const {
       category,
       search,
-      lat,
-      lng,
-      radius = 5000, // Default 5km radius
-      time = new Date().toISOString(),
-      date = new Date().toISOString().split("T")[0],
+      page = 1, // Default to page 1
+      pageSize = 30, // Default 30 places per page
+    } = req.query;
+
+    const skip = (page - 1) * pageSize; // Calculate offset for pagination
+
+    let whereClause = {};
+
+    if (category) {
+      whereClause = {
+        ...whereClause,
+        category,
+      };
+    }
+
+    if (search) {
+      whereClause = {
+        ...whereClause,
+        OR: [
+          { name: { contains: search, mode: "insensitive" } },
+          { description: { contains: search, mode: "insensitive" } },
+        ],
+      };
+    }
+
+    // Fetch total count for pagination
+    const totalPlaces = await PrismaClient.client.places.count({
+      where: whereClause,
+    });
+
+    // Fetch paginated places
+    const places = await PrismaClient.client.places.findMany({
+      where: whereClause,
+      include: {
+        reviews: {
+          include: {
+            user: true,
+          },
+        },
+      },
+      skip,
+      take: parseInt(pageSize),
+      orderBy: {
+        heat_score: "desc",
+      },
+    });
+
+    const totalPages = Math.ceil(totalPlaces / pageSize);
+
+    res.json({
+      places,
+      pagination: {
+        totalPlaces,
+        totalPages,
+        currentPage: parseInt(page),
+        pageSize: parseInt(pageSize),
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching paginated places:", error);
+    res.status(500).json({ error: "Failed to fetch paginated places" });
+  }
+});
+
+// Get total pages for a query
+router.get("/total-pages", async (req, res) => {
+  try {
+    const {
+      category,
+      search,
+      pageSize = 30, // Default 30 places per page
     } = req.query;
 
     let whereClause = {};
@@ -395,34 +460,21 @@ router.get("/", async (req, res) => {
       };
     }
 
-    const places = await PrismaClient.client.places.findMany({
+    // Fetch total count for pagination
+    const totalPlaces = await PrismaClient.client.places.count({
       where: whereClause,
-      include: {
-        reviews: {
-          include: {
-            user: true,
-          },
-        },
-      },
-      orderBy: {
-        heat_score: "desc",
-      },
     });
 
-    const places2 = await PrismaClient.client.places.findMany({
-      where: {
-        category: category || undefined,
-        name: search ? { contains: search } : undefined,
-      },
-      orderBy: {
-        heat_score: "desc",
-      },
-    });
+    const totalPages = Math.ceil(totalPlaces / pageSize);
 
-    res.json(places);
+    res.json({
+      totalPlaces,
+      totalPages,
+      pageSize: parseInt(pageSize),
+    });
   } catch (error) {
-    console.error("Error fetching places:", error);
-    res.status(500).json({ error: "Failed to fetch places" });
+    console.error("Error fetching total pages:", error);
+    res.status(500).json({ error: "Failed to fetch total pages" });
   }
 });
 

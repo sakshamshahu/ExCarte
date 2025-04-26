@@ -67,6 +67,13 @@ export const api = {
       const response = await fetch(`${API_URL}/places/heatmap?${searchParams}`);
       if (!response.ok) throw new Error('Failed to fetch heatmap data');
       return response.json();
+    },
+
+    getTotalPages: async (params = {}) => {
+      const searchParams = new URLSearchParams(params);
+      const response = await fetch(`${API_URL}/places/pages?${searchParams}`);
+      if (!response.ok) throw new Error('Failed to fetch pages');
+      return response.json();
     }
   },
 
