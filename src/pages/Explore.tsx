@@ -156,15 +156,7 @@ const Explore = () => {
                     exit={{ opacity: 0, y: -20 }}
                   >
                     <PlaceCard
-                      place={{
-                        id: place.id,
-                        name: place.name,
-                        description: place.description,
-                        images: place.images,
-                        average_rating: place.average_rating,
-                        total_reviews: place.total_reviews,
-                        address: place.address,
-                      }}
+                      place={place}
                       onClick={() => handlePlaceSelect(place)}
                     />
                   </motion.div>

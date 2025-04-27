@@ -18,7 +18,7 @@ function App() {
           <Route path="/explore" element={<Explore />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/place/:id/reviews" element={<PlaceReviews />} />
+          <Route path="/place/:id" element={<PlaceReviews />} />
           <Route path="/user/reviews" element={<UserReviews />} />
         </Routes>
         <Toaster position="bottom-right" />
