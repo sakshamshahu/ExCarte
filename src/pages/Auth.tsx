@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../lib/firebase';
 import {
@@ -14,6 +14,7 @@ import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import Onboarding from '../components/Onboarding';
 import Spinner from '../components/Spinner';
+import { api } from '../lib/api';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -24,9 +25,47 @@ const Auth = () => {
   const [lastName, setLastName] = useState('');
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [socialLoading, setSocialLoading] = useState<'google' | 'github' | null>(null);
+  const [socialLoading, setSocialLoading] = useState<string | null>(null);
 
-  const handleEmailAuth = async (e: React.FormEvent) => {
+ // Check if user exists in your database
+ const checkUserExists = async (userId: string) => {
+  try {
+    // Use your api.auth.getProfile method instead of fetch
+    const response = await api.auth.getProfile(userId);
+    
+    // Check if response exists and has auth_id property
+    if (response && response.auth_id === userId) {
+      console.log('User exists in database');
+      return true;
+    } else if (response && typeof response === 'object') {
+      // Try to find auth_id at any level in the response object
+      const findAuthId = (obj: any) => {
+        for (const key in obj) {
+          if (key === 'auth_id' && obj[key] === userId) {
+            return true;
+          } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+            const found = findAuthId(obj[key]);
+            if (found) return true;
+          }
+        }
+        return false;
+      };
+      
+      if (findAuthId(response)) {
+        console.log('User exists in database (found deeper in response)');
+        return true;
+      }
+    }
+    
+    console.log('User does not exist in database, showing onboarding');
+    return false; // Default to showing onboarding if user not found
+  } catch (error) {
+    console.error("Error checking user:", error);
+    return false; // Default to showing onboarding if there's an error
+  }
+};
+
+  const handleEmailAuth = async (e: any) => {
     e.preventDefault();
     if (!auth) {
       toast.error('Authentication is not configured');
@@ -38,6 +77,7 @@ const Auth = () => {
       if (isSignUp) {
         if (!firstName || !lastName) {
           toast.error('Please enter your full name');
+          setIsLoading(false);
           return;
         }
         const { user } = await createUserWithEmailAndPassword(auth, email, password);
@@ -46,8 +86,14 @@ const Auth = () => {
         });
         setShowOnboarding(true);
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
-        navigate('/');
+        const { user } = await signInWithEmailAndPassword(auth, email, password);
+        // For sign in, check if user exists in your database
+        const userExists = await checkUserExists(user.uid);
+        if (!userExists) {
+          setShowOnboarding(true);
+        } else {
+          navigate('/');
+        }
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Authentication failed');
@@ -62,7 +108,10 @@ const Auth = () => {
     try {
       const provider = new GoogleAuthProvider();
       const { user } = await signInWithPopup(auth, provider);
-      if (user.metadata.creationTime === user.metadata.lastSignInTime) {
+      
+      // Always check if user exists in your database
+      const userExists = await checkUserExists(user.uid);
+      if (!userExists) {
         setShowOnboarding(true);
       } else {
         navigate('/');
@@ -80,7 +129,10 @@ const Auth = () => {
     try {
       const provider = new GithubAuthProvider();
       const { user } = await signInWithPopup(auth, provider);
-      if (user.metadata.creationTime === user.metadata.lastSignInTime) {
+      
+      // Always check if user exists in your database
+      const userExists = await checkUserExists(user.uid);
+      if (!userExists) {
         setShowOnboarding(true);
       } else {
         navigate('/');
@@ -289,10 +341,12 @@ const Auth = () => {
       </div>
 
       {showOnboarding && (
-        <Onboarding onComplete={() => {
-          setShowOnboarding(false);
-          navigate('/');
-        }} />
+        <Onboarding 
+          onComplete={() => {
+            setShowOnboarding(false);
+            navigate('/');
+          }} 
+        />
       )}
     </>
   );
