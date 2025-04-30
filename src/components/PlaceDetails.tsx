@@ -23,7 +23,6 @@ const PlaceDetails: React.FC<PlaceDetailsProps> = ({ place, onClose }) => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
         const { latitude, longitude } = position.coords;
-        console.log("Latitude:", latitude);
         setUserLocation({ latitude, longitude });
       });
     } else {
@@ -88,7 +87,7 @@ const PlaceDetails: React.FC<PlaceDetailsProps> = ({ place, onClose }) => {
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 bg-black/50 p-2 rounded-full text-white hover:bg-black/70 transition-colors"
+          className="absolute top-4 right-4 bg-black/50 p-2 rounded-full text-white hover:bg-black/70 transition-colors z-50"
         >
           <X className="h-6 w-6" />
         </button>
