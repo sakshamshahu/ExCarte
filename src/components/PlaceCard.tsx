@@ -38,8 +38,6 @@ const PlaceCard: React.FC<PlaceCardProps> = ({ place, onClick }) => {
       return "Hours not available";
 
     const today = format(new Date(), "EEEE");
-    console.log("Today: ", today);
-    console.log("Opening Hours: ", place.opening_hours);
     const todayHours = place.opening_hours.find((hours: string) =>
       hours.toLowerCase().startsWith(today.toLowerCase())
     );
