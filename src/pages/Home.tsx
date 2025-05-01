@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
+import bangaloreMap from "../../assets/bangalore-map.png"
 import {
   Search,
   Coffee,
@@ -401,7 +402,7 @@ export default function HomePage() {
                     className="absolute inset-0 bg-gray-200"
                   >
                     <img
-                      src="https://via.placeholder.com/800x600"
+                      src={bangaloreMap}
                       alt="Bangalore Map"
                       className="w-full h-full object-cover"
                     />
@@ -411,13 +412,21 @@ export default function HomePage() {
                     <div className="absolute top-1/4 left-1/3 animate-pulse">
                       <div className="w-4 h-4 bg-red-500 rounded-full"></div>
                     </div>
-                    <div className="absolute top-1/2 left-1/2 animate-pulse">
+                    <div className="absolute top-1/3 left-1/2 animate-pulse">
                       <div className="w-4 h-4 bg-red-500 rounded-full"></div>
                     </div>
-                    <div className="absolute bottom-1/3 right-1/4 animate-pulse">
+                    <div className="absolute top-1/3 left-1/4 animate-pulse">
                       <div className="w-4 h-4 bg-red-500 rounded-full"></div>
                     </div>
-
+                    <div className="absolute bottom-1/2 right-1/4 animate-pulse">
+                      <div className="w-4 h-4 bg-red-500 rounded-full"></div>
+                    </div>
+                    <div className="absolute bottom-2/3 right-1/2 animate-pulse">
+                      <div className="w-4 h-4 bg-red-500 rounded-full"></div>
+                    </div>
+                    <div className="absolute bottom-2/3 right-1/3 animate-pulse">
+                      <div className="w-4 h-4 bg-red-500 rounded-full"></div>
+                    </div>
                     <div className="absolute bottom-6 left-6 right-6">
                       <div className="bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-lg">
                         <h3 className="font-bold mb-2">Discover Bangalore</h3>
