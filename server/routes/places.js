@@ -157,7 +157,8 @@ router.post("/seed", async (req, res) => {
     "Content-Type": "application/json",
     "Transfer-Encoding": "chunked",
   });
-
+  const { dbSeed = "true" } = req.query;
+  const seedInSupabase = dbSeed === "true" ? true : false;
   try {
     const totalPlaces = placesData.places.length;
     let processedCount = 0;
@@ -205,6 +206,9 @@ router.post("/seed", async (req, res) => {
 
       processedCount += batch.length;
 
+      console.log(
+        `Processed ${processedCount}/${totalPlaces} places in Localhost`
+      );
       res.write(
         JSON.stringify({
           progress: {
@@ -230,7 +234,7 @@ router.post("/seed", async (req, res) => {
       })
     );
 
-    if (PrismaClient.useLocalhost) {
+    if (PrismaClient.useLocalhost && seedInSupabase) {
       seedSupabaseInBackground(successfulPlaces).catch((error) => {
         console.error("Background Supabase seeding error:", error);
       });
@@ -279,6 +283,9 @@ async function seedSupabaseInBackground(places) {
             data: placeData,
           });
         }
+        console.log(
+          `Successfully processed place "${place.name}" in Supabase`
+        );
         successCount++;
       } catch (placeError) {
         errorCount++;
