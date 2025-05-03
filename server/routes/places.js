@@ -377,6 +377,7 @@ router.get("/", async (req, res) => {
       search,
       page = 1, // Default to page 1
       pageSize = 30, // Default 30 places per page
+      ...booleanFilters
     } = req.query;
 
     const skip = (page - 1) * pageSize; // Calculate offset for pagination
@@ -399,6 +400,53 @@ router.get("/", async (req, res) => {
         ],
       };
     }
+
+    // Add boolean filters
+    Object.entries(booleanFilters).forEach(([key, value]) => {
+      // Only add if it's a boolean field and has a valid boolean value
+      if (
+        typeof value === "string" &&
+        (value === "true" || value === "false") &&
+        // Check if the key exists in the Place model schema
+        [
+          "take_out",
+          "delivery",
+          "dine_in",
+          "reservable",
+          "serves_breakfast",
+          "serves_lunch",
+          "serves_dinner",
+          "serves_brunch",
+          "serves_vegetarian_food",
+          "serves_beer",
+          "serves_wine",
+          "serves_cocktails",
+          "serves_dessert",
+          "serves_coffee",
+          "outdoor_seating",
+          "live_music",
+          "menu_for_children",
+          "good_for_children",
+          "restroom",
+          "good_for_groups",
+          "good_for_watching_sports",
+          "acceptsCreditCards",
+          "acceptsDebitCards",
+          "acceptsCashOnly",
+          "acceptsNfc",
+          "freeParkingLot",
+          "freeStreetParking",
+          "paidParkingLot",
+          "valetParking",
+          "wheelchairAccessibleParking",
+          "wheelchairAccessibleEntrance",
+          "wheelchairAccessibleRestroom",
+          "wheelchairAccessibleSeating",
+        ].includes(key)
+      ) {
+        whereClause[key] = value === "true"
+      }
+    });
 
     // Fetch total count for pagination
     const totalPlaces = await PrismaClient.client.places.count({

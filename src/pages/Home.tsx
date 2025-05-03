@@ -197,12 +197,15 @@ export default function HomePage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-2">
-                  <button
+                    <button
                     type="button"
                     className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                  >
+                    onClick={() => {
+                      window.location.href = `/explore?search=${encodeURIComponent(searchQuery)}`
+                    }}
+                    >
                     Search
-                  </button>
+                    </button>
                 </div>
               </motion.div>
 

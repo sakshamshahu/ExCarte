@@ -50,8 +50,11 @@ export const api = {
 
   places: {
     getAll: async (params = {}) => {
-      const searchParams = new URLSearchParams(params);
-      const response = await fetch(`${API_URL}/places?${searchParams}`);
+      const queryString = Object.entries(params)
+      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value as string | number | boolean)}`)
+      .join("&")
+
+      const response = await fetch(`${API_URL}/places?${queryString}`)
       if (!response.ok) throw new Error('Failed to fetch places');
       return response.json();
     },
