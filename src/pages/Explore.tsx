@@ -210,6 +210,13 @@ const amenityGroups = {
   ],
 };
 
+const priceLevelOptions = [
+  { value: "PRICE_LEVEL_INEXPENSIVE", label: "Budget-friendly" },
+  { value: "PRICE_LEVEL_MODERATE", label: "Mid-range" },
+  { value: "PRICE_LEVEL_EXPENSIVE", label: "High-end" },
+  { value: "PRICE_LEVEL_VERY_EXPENSIVE", label: "Luxury" },
+];
+
 const categories = [
   { id: "all", name: "All Places", icon: MapPin },
   { id: "coffee", name: "Cafes", icon: Coffee },
@@ -232,6 +239,7 @@ const Explore = () => {
   const [goToPage, setGoToPage] = useState("");
   const [isLlmSearching, setIsLlmSearching] = useState(false);
   const [aiButtonActive, setAiButtonActive] = useState(false);
+  const [selectedPriceLevel, setSelectedPriceLevel] = useState("");
 
   // Advanced search filters
   const [advancedFilters, setAdvancedFilters] = useState<
@@ -256,7 +264,7 @@ const Explore = () => {
       setActiveCategory(queryParams.get("category") || "all");
     if (queryParams.has("page"))
       setCurrentPage(Number(queryParams.get("page")) || 1);
-
+    // if (selectedPriceLevel) queryParams.set("priceLevel", selectedPriceLevel);
     // Handle boolean filters
     const newAdvancedFilters: Record<string, boolean> = {};
 

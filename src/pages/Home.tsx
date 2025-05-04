@@ -570,7 +570,7 @@ export default function HomePage() {
                     </select>
                   </motion.div>
 
-                  <motion.div variants={itemFadeIn} className="flex-1">
+                  {/* <motion.div variants={itemFadeIn} className="flex-1">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       My vibe is
                     </label>
@@ -581,7 +581,7 @@ export default function HomePage() {
                       <option>Family-friendly</option>
                       <option>Romantic</option>
                     </select>
-                  </motion.div>
+                  </motion.div> */}
 
                   <motion.div variants={itemFadeIn} className="flex-1">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -594,6 +594,7 @@ export default function HomePage() {
                       <option>Luxury</option>
                     </select>
                   </motion.div>
+
                 </div>
 
                 <motion.div variants={itemFadeIn} className="mb-8">
@@ -697,7 +698,7 @@ export default function HomePage() {
                 </li>
                 <li>
                   <a
-                    href="/exlpore"
+                    href="/explore"
                     className="text-gray-400 hover:text-white transition-colors"
                   >
                     Explore
