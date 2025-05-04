@@ -217,6 +217,12 @@ const priceLevelOptions = [
   { value: "PRICE_LEVEL_VERY_EXPENSIVE", label: "Luxury" },
 ];
 
+const areaOptions = [
+  { value: "jayanagar", label: "Jayanagar" },
+  { value: "koramangala", label: "Koramangala" },
+  { value: "hsr layout", label: "HSR Layout" },
+];
+
 const categories = [
   { id: "all", name: "All Places", icon: MapPin },
   { id: "coffee", name: "Cafes", icon: Coffee },
@@ -240,6 +246,7 @@ const Explore = () => {
   const [isLlmSearching, setIsLlmSearching] = useState(false);
   const [aiButtonActive, setAiButtonActive] = useState(false);
   const [selectedPriceLevel, setSelectedPriceLevel] = useState("");
+  const [selectedArea, setSelectedArea] = useState("all");
 
   // Advanced search filters
   const [advancedFilters, setAdvancedFilters] = useState<
@@ -265,9 +272,11 @@ const Explore = () => {
     if (queryParams.has("page"))
       setCurrentPage(Number(queryParams.get("page")) || 1);
     if (queryParams.has("priceLevel"))
-      setSelectedPriceLevel(queryParams.get("priceLevel") || "")
+      setSelectedPriceLevel(queryParams.get("priceLevel") || "");
+    if (queryParams.has("area"))
+      setSelectedArea(queryParams.get("area") || "all");
     if (queryParams.has("llm"))
-      setIsLlmSearching(queryParams.get("llm") === "yes" || false)
+      setIsLlmSearching(queryParams.get("llm") === "yes" || false);
     // Handle boolean filters
     const newAdvancedFilters: Record<string, boolean> = {};
 
@@ -293,7 +302,7 @@ const Explore = () => {
     if (currentPage > 1) queryParams.set("page", currentPage.toString());
     if (selectedPriceLevel.length > 0)
       queryParams.set("priceLevel", selectedPriceLevel);
-
+    if (selectedArea !== "all") queryParams.set("area", selectedArea);
     // Add boolean filters to query params
     Object.entries(advancedFilters).forEach(([key, value]) => {
       queryParams.set(key, String(value));
@@ -309,6 +318,7 @@ const Explore = () => {
     currentPage,
     advancedFilters,
     selectedPriceLevel,
+    selectedArea,
     navigate,
     location.pathname,
   ]);
@@ -337,7 +347,7 @@ const Explore = () => {
         const params: Record<string, string> = {
           page: String(page),
           pageSize: String(PAGE_SIZE),
-          llm: llm
+          llm: llm,
         };
 
         if (category !== "all") params.category = category;
@@ -374,15 +384,23 @@ const Explore = () => {
 
   // Fetch places when pagination, search or category changes
   useEffect(() => {
-    debouncedFetchPlaces(searchQuery, activeCategory, currentPage, {
-      ...advancedFilters,
-      priceLevel: selectedPriceLevel,
-    }, isLlmSearching);
+    debouncedFetchPlaces(
+      searchQuery,
+      activeCategory,
+      currentPage,
+      {
+        ...advancedFilters,
+        priceLevel: selectedPriceLevel,
+        area: selectedArea,
+      },
+      isLlmSearching
+    );
     return () => debouncedFetchPlaces.cancel();
   }, [
     searchQuery,
     activeCategory,
     selectedPriceLevel,
+    selectedArea,
     currentPage,
     advancedFilters,
     debouncedFetchPlaces,
@@ -411,7 +429,7 @@ const Explore = () => {
 
   const handleLlmSearch = async () => {
     if (!searchQuery.trim()) return;
-    if(isLlmSearching) {
+    if (isLlmSearching) {
       setIsLlmSearching(false);
       setAiButtonActive(false);
       return;
@@ -429,7 +447,13 @@ const Explore = () => {
 
       // For now, just use the regular search
       // This will be replaced with actual LLM search results
-      debouncedFetchPlaces(searchQuery, activeCategory, 1, advancedFilters, true);
+      debouncedFetchPlaces(
+        searchQuery,
+        activeCategory,
+        1,
+        advancedFilters,
+        true
+      );
     } catch (error) {
       console.error("Error with LLM search:", error);
     } finally {
@@ -454,6 +478,7 @@ const Explore = () => {
   const clearAdvancedFilters = () => {
     setAdvancedFilters({});
     setSelectedPriceLevel("");
+    setSelectedArea("all");
   };
 
   const getActiveFilterCount = () => {
@@ -566,15 +591,38 @@ const Explore = () => {
                     value={selectedPriceLevel}
                     onChange={(e) => setSelectedPriceLevel(e.target.value)}
                     className={`flex items-center rounded-full whitespace-nowrap transition-all duration-300 bg-transparent ${
-                      selectedPriceLevel !== ""
-                      ? "text-white"
-                      : "text-gray-700"
-                  }`}
+                      selectedPriceLevel !== "" ? "text-white" : "text-gray-700"
+                    }`}
                   >
                     <option value="" className="pr-[3rem]">
                       Price
                     </option>
                     {priceLevelOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {/* Area Filter */}
+                <div
+                  className={`flex items-center px-2 py-2 rounded-full whitespace-nowrap transition-all duration-300 ${
+                    selectedArea !== "all"
+                      ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md"
+                      : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                  }`}
+                >
+                  <select
+                    value={selectedArea}
+                    onChange={(e) => setSelectedArea(e.target.value)}
+                    className={`flex items-center rounded-full whitespace-nowrap transition-all duration-300 bg-transparent ${
+                      selectedArea !== "all" ? "text-white" : "text-gray-700"
+                    }`}
+                  >
+                    <option value="all" className="pr-[3rem]">
+                      Area
+                    </option>
+                    {areaOptions.map((option) => (
                       <option key={option.value} value={option.value}>
                         {option.label}
                       </option>

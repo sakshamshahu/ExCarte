@@ -178,13 +178,11 @@ const scaleUp = {
   visible: { scale: 1, opacity: 1, transition: { duration: 0.5 } },
 };
 
-// Area Mapping:
-// jayanagar: 435
-// koramangala: 536
-// hsr layout: 609
-// hsr layout 5th sector: 9
-
-// Updated data saved to updated_filtered_data.json
+const areaOptions = [
+  { value: "jayanagar", label: "Jayanagar" },
+  { value: "koramangala", label: "Koramangala" },
+  { value: "hsr layout", label: "HSR Layout" },
+];
 
 const priceLevelOptions = [
   { value: "PRICE_LEVEL_INEXPENSIVE", label: "Budget-friendly" },
@@ -210,6 +208,7 @@ export default function HomePage() {
   const [mapRef, mapInView] = useInView({ threshold: 0.1 });
   const [personalizedRef, personalizedInView] = useInView({ threshold: 0.1 });
   const [selectedPriceLevel, setSelectedPriceLevel] = useState("");
+  const [selectedArea, setSelectedArea] = useState("all");
   const [category, setCategory] = useState("");
   const [queryInput, setQueryInput] = useState("");
   return (
@@ -603,18 +602,25 @@ export default function HomePage() {
                     </select>
                   </motion.div>
 
-                  {/* <motion.div variants={itemFadeIn} className="flex-1">
+                  <motion.div variants={itemFadeIn} className="flex-1">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      My Location is
+                      The Area is
                     </label>
-                    <select className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                      <option>Casual & Relaxed</option>
-                      <option>Trendy & Hip</option>
-                      <option>Luxury & Upscale</option>
-                      <option>Family-friendly</option>
-                      <option>Romantic</option>
+                    <select
+                      className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      value={selectedArea}
+                      onChange={(e) => setSelectedArea(e.target.value)}
+                    >
+                      <option value="all" className="pr-[3rem]">
+                        All
+                      </option>
+                      {areaOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
                     </select>
-                  </motion.div> */}
+                  </motion.div>
 
                   <motion.div variants={itemFadeIn} className="flex-1">
                     <label className="block text-sm font-medium text-gray-700 mb-2">

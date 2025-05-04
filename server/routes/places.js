@@ -379,6 +379,7 @@ router.get("/", async (req, res) => {
       page = 1, // Default to page 1
       pageSize = 30, // Default 30 places per page
       priceLevel,
+      area,
       ...booleanFilters
     } = req.query;
 
@@ -450,6 +451,19 @@ router.get("/", async (req, res) => {
       }
     });
 
+    if (area && area !== "" && area.toLowerCase() !== "all") {
+      const lowerCaseArea = area.toLowerCase();
+      let areaArray = [lowerCaseArea];
+      if (lowerCaseArea === "hsr layout") {
+        areaArray.push("hsr layout 5th sector");
+      }
+      whereClause = {
+        ...whereClause,
+        area: {
+          in: areaArray,
+        },
+      };
+    }
     if(priceLevel) {
       whereClause = {
         ...whereClause,
