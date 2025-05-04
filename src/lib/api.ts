@@ -99,12 +99,6 @@ export const api = {
       return response.json();
     },
 
-    getFavorites: async (userId: string) => {
-      const response = await fetch(`${API_URL}/users/${userId}/favorites`);
-      if (!response.ok) throw new Error('Failed to fetch favorites');
-      return response.json();
-    },
-
     getReviews: async (userId: string) => {
       const response = await fetch(`${API_URL}/users/${userId}/reviews`);
       if (!response.ok) throw new Error('Failed to fetch reviews');

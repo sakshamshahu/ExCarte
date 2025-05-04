@@ -9,6 +9,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import { format } from "date-fns";
+import googleIcon from "../../assets/google.svg";
 
 export interface PlaceCardProps {
   place: {
@@ -46,8 +47,12 @@ const PlaceCard: React.FC<PlaceCardProps> = ({ place, onClick }) => {
   };
 
   // Format rating for display - use google rating if available, otherwise use local rating
-  const rating = place.google_average_rating || place.average_rating || 0;
-  const reviewCount = place.google_total_reviews || place.total_reviews || 0;
+  const rating = (
+    ((place.google_total_reviews || 0) * (place.google_average_rating || 0) +
+      (place.total_reviews || 0) * (place.average_rating || 0)) /
+    ((place.google_total_reviews || 0) + (place.total_reviews || 0) || 1)
+  );
+  const reviewCount = place.total_reviews || 0;
 
   // Format price level for display
   const getPriceIndicator = (priceLevel: string) => {
@@ -61,7 +66,7 @@ const PlaceCard: React.FC<PlaceCardProps> = ({ place, onClick }) => {
       case "PRICE_LEVEL_VERY_EXPENSIVE":
         return "₹₹₹₹";
       default:
-        return "₹₹";
+        return null;
     }
   };
 
@@ -99,7 +104,7 @@ const PlaceCard: React.FC<PlaceCardProps> = ({ place, onClick }) => {
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
 
         {/* Price indicator badge */}
-        {place.priceLevel && (
+        {place.priceLevel && getPriceIndicator(place.priceLevel) && (
           <div className="absolute top-3 right-3 bg-white/90 px-2 py-1 rounded-full text-sm font-medium">
             {getPriceIndicator(place.priceLevel)}
           </div>
@@ -122,6 +127,14 @@ const PlaceCard: React.FC<PlaceCardProps> = ({ place, onClick }) => {
             </div>
             <span className="mx-1 text-gray-400">•</span>
             <span className="text-sm text-gray-500">{reviewCount} reviews</span>
+            <div className="bg-gray-100 rounded-full ml-2 px-2 py-1 flex items-center text-xs gap-1">
+              <img src={googleIcon} className="w-4 h-4" />
+              <span>
+                {place.google_total_reviews
+                  ? place.google_total_reviews.toString()
+                  : "N/A"}
+              </span>
+            </div>
           </div>
         </div>
 

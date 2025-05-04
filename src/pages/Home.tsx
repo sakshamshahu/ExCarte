@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react"
-import { motion } from "framer-motion"
-import bangaloreMap from "../../assets/bangalore-map.png"
+import { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
+import bangaloreMap from "../../assets/bangalore-map.png";
 import {
   Search,
   Coffee,
@@ -14,95 +14,146 @@ import {
   ArrowRight,
   Sparkles,
   Compass,
-} from "lucide-react"
+} from "lucide-react";
 
 // Custom hook for intersection observer
-const useInView = (options = {}): [React.MutableRefObject<HTMLElement | null>, boolean] => {
-  const [isInView, setIsInView] = useState(false)
-  const ref = useRef(null)
+const useInView = (
+  options = {}
+): [React.MutableRefObject<HTMLElement | null>, boolean] => {
+  const [isInView, setIsInView] = useState(false);
+  const ref = useRef(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
-      setIsInView(entry.isIntersecting)
-    }, options)
+      setIsInView(entry.isIntersecting);
+    }, options);
 
     if (ref.current) {
-      observer.observe(ref.current)
+      observer.observe(ref.current);
     }
 
     return () => {
       if (ref.current) {
-        observer.unobserve(ref.current)
+        observer.unobserve(ref.current);
       }
-    }
-  }, [ref, options])
+    };
+  }, [ref, options]);
 
-  return [ref, isInView]
-}
+  return [ref, isInView];
+};
 
 // Featured places data
 const featuredPlaces = [
   {
     id: 1,
-    name: "Glen's Bakehouse",
-    rating: 4.4,
-    reviews: 11003,
-    image: "https://via.placeholder.com/400x300",
-    tags: ["bakery", "coffee shop", "dessert restaurant"],
-    description: "Casual western snacks are available with a range of made-to-order bakes at this casual venue.",
+    name: "Third Wave Coffee",
+    rating: 4.3,
+    reviews: 3738,
+    image:
+      "https://lh3.googleusercontent.com/p/AF1QipM2cbQ8uTPsOxxKj-gU-rwWamKsrtU4wUkdeJGT=w900-h900-p-k-no",
+    tags: [
+      "cafe",
+      "coffee_shop",
+      "food_store",
+      "store",
+      "food",
+      "point_of_interest",
+      "establishment",
+    ],
+    description:
+      "I Ordered my regular coffee with almond milk and a croissant and chicken puff at Third Wave Coffee. This is one of my go-to places as they offer coffee with vegan milk, which is great since I’m lactos...",
   },
   {
     id: 2,
-    name: "Champaca Bookstore",
-    rating: 4.5,
-    reviews: 1398,
-    image: "https://via.placeholder.com/400x300",
-    tags: ["book store", "cafe"],
+    name: "Oasis Centre",
+    rating: 4.2,
+    reviews: 8676,
+    image: "https://lh3.googleusercontent.com/gps-cs-s/AC9h4npMoVkCAyNgimsLohHz-uooMtqeUUqETW1VsG9McqcIdWMPW7znGpR8A3bUK82RDoaMXJjdvDPMCyrDRk-PzvRvcdtZo2xtCFkM8bLmj3VJ3pO77yCsc76p0HcPXAgyj8U2rDVs=w900-h900-p-k-no",
+    tags: ["shopping_mall", "point_of_interest", "establishment"],
     description:
-      "This is the perfect place to spend some time with books. The quiet rustic place offers a cozy corner.",
+      "Went to Magique restaurant in this building. Downstairs they have Soch and Kushal’s store. Third floor they have pub. All floor they have something I didn’t explore. Very nice place , parking is avail...",
   },
   {
     id: 3,
-    name: "Amintiri",
-    rating: 4.4,
-    reviews: 5456,
-    image: "https://via.placeholder.com/400x300",
-    tags: ["cafe", "coffee shop", "fast food restaurant"],
-    description: "Stylish bakery & cafe creating handmade cakes & desserts, plus pasta plates & salads.",
+    name: "Meghana Foods",
+    rating: 4.3,
+    reviews: 33585,
+    image: "https://lh3.googleusercontent.com/p/AF1QipMUaXQ3YNosQh8_GC_znm06KY3NbPsRwT5cTJ4K=w900-h900-p-k-no",
+    tags: [
+      "indian_restaurant",
+      "restaurant",
+      "food",
+      "point_of_interest",
+      "establishment"
+  ],
+    description:
+      "Best for it's biryani, no other biryani is as good as them in entire Bangalore... It's like North is in south after eating it.",
   },
   {
     id: 4,
-    name: "Church Street Social",
-    rating: 4.2,
-    reviews: 15966,
-    image: "https://via.placeholder.com/400x300",
-    tags: ["pub", "cafe", "bar"],
-    description: "Spacious, stylish cafe, bar & work space serving international bites, beverages & cocktails.",
+    name: "Oyster, Bar & Kitchen",
+    rating: 4.6,
+    reviews: 7682,
+    image: "https://lh3.googleusercontent.com/p/AF1QipObpKxRUZVY_8ULx_j1Qp6sDOcjGX7ENePVUipu=w900-h900-p-k-no",
+    tags: [
+      "bar",
+      "pub",
+      "seafood_restaurant",
+      "night_club",
+      "bar_and_grill",
+      "buffet_restaurant",
+      "restaurant",
+      "food",
+      "point_of_interest",
+      "establishment"
+  ],
+    description:
+      "Had an amazing time at Oyster Bar & Kitchen. The ambience is very good, with a nice greenish theme. They are pet-friendly, which is a big plus for pet owners. The hygiene is top-notch, and the staff ...",
   },
-]
+];
 
 // Categories data
 const categories = [
-  { id: 1, name: "Cafes & Restaurants", icon: <Coffee className="w-8 h-8" />, count: 248 },
-  { id: 2, name: "Nightlife & Entertainment", icon: <Music className="w-8 h-8" />, count: 124 },
-  { id: 3, name: "Shopping & Markets", icon: <ShoppingBag className="w-8 h-8" />, count: 186 },
-  { id: 4, name: "Food & Dining", icon: <Utensils className="w-8 h-8" />, count: 312 },
-]
+  {
+    id: 1,
+    name: "Cafes & Restaurants",
+    icon: <Coffee className="w-8 h-8" />,
+    count: 201,
+  },
+  {
+    id: 2,
+    name: "Nightlife & Entertainment",
+    icon: <Music className="w-8 h-8" />,
+    count: 102,
+  },
+  {
+    id: 3,
+    name: "Shopping & Markets",
+    icon: <ShoppingBag className="w-8 h-8" />,
+    count: 409,
+  },
+  {
+    id: 4,
+    name: "Food & Dining",
+    icon: <Utensils className="w-8 h-8" />,
+    count: 325,
+  },
+];
 
 // Neighborhoods data
 const neighborhoods = [
-  { id: 1, name: "Indiranagar", count: 86 },
-  { id: 2, name: "Koramangala", count: 124 },
-  { id: 3, name: "MG Road", count: 78 },
-  { id: 4, name: "Whitefield", count: 92 },
-  { id: 5, name: "JP Nagar", count: 64 },
-]
+  { id: 1, name: "HSR layout", count: 1427 },
+  { id: 2, name: "Jayanagar", count: 579 },
+  { id: 3, name: "Kormangala", count: 102 },
+  // { id: 4, name: "Whitefield", count: 92 },
+  // { id: 5, name: "JP Nagar", count: 64 },
+];
 
 // Animations
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
-}
+};
 
 const staggerContainer = {
   hidden: { opacity: 0 },
@@ -112,26 +163,26 @@ const staggerContainer = {
       staggerChildren: 0.1,
     },
   },
-}
+};
 
 const itemFadeIn = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0 },
-}
+};
 
 const scaleUp = {
   hidden: { scale: 0.8, opacity: 0 },
   visible: { scale: 1, opacity: 1, transition: { duration: 0.5 } },
-}
+};
 
 export default function HomePage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [activeCategory, setActiveCategory] = useState<number | null>(null)
-  const [heroRef, heroInView] = useInView({ threshold: 0.1 })
-  const [categoriesRef, categoriesInView] = useInView({ threshold: 0.1 })
-  const [featuredRef, featuredInView] = useInView({ threshold: 0.1 })
-  const [mapRef, mapInView] = useInView({ threshold: 0.1 })
-  const [personalizedRef, personalizedInView] = useInView({ threshold: 0.1 })
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState<number | null>(null);
+  const [heroRef, heroInView] = useInView({ threshold: 0.1 });
+  const [categoriesRef, categoriesInView] = useInView({ threshold: 0.1 });
+  const [featuredRef, featuredInView] = useInView({ threshold: 0.1 });
+  const [mapRef, mapInView] = useInView({ threshold: 0.1 });
+  const [personalizedRef, personalizedInView] = useInView({ threshold: 0.1 });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -167,7 +218,8 @@ export default function HomePage() {
                 transition={{ duration: 0.6, delay: 0.2 }}
                 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight"
               >
-                Find Your <span className="text-indigo-600">Perfect Place</span> in Bangalore
+                Find Your <span className="text-indigo-600">Perfect Place</span>{" "}
+                in Bangalore
               </motion.h1>
 
               <motion.p
@@ -176,8 +228,9 @@ export default function HomePage() {
                 transition={{ duration: 0.6, delay: 0.4 }}
                 className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto"
               >
-                New to town? Let us guide you to the perfect places based on your interests. From cozy cafes to vibrant
-                nightlife, we've got you covered.
+                New to town? Let us guide you to the perfect places based on
+                your interests. From cozy cafes to vibrant nightlife, we've got
+                you covered.
               </motion.p>
 
               <motion.div
@@ -197,15 +250,17 @@ export default function HomePage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-2">
-                    <button
+                  <button
                     type="button"
                     className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                     onClick={() => {
-                      window.location.href = `/explore?search=${encodeURIComponent(searchQuery)}`
+                      window.location.href = `/explore?search=${encodeURIComponent(
+                        searchQuery
+                      )}`;
                     }}
-                    >
+                  >
                     Search
-                    </button>
+                  </button>
                 </div>
               </motion.div>
 
@@ -215,7 +270,8 @@ export default function HomePage() {
                 transition={{ duration: 0.6, delay: 0.8 }}
                 className="mt-6 text-sm text-gray-500"
               >
-                Try: "Best coffee shops", "Romantic dinner spots", "Live music venues"
+                Try: "Best coffee shops", "Romantic dinner spots", "Live music
+                venues"
               </motion.div>
             </div>
           </div>
@@ -230,11 +286,17 @@ export default function HomePage() {
           className="py-16 bg-white"
         >
           <div className="container mx-auto px-4">
-            <motion.h2 variants={itemFadeIn} className="text-3xl font-bold text-center mb-12">
+            <motion.h2
+              variants={itemFadeIn}
+              className="text-3xl font-bold text-center mb-12"
+            >
               What interests you?
             </motion.h2>
 
-            <motion.div variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <motion.div
+              variants={staggerContainer}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+            >
               {categories.map((category) => (
                 <motion.div
                   key={category.id}
@@ -245,13 +307,19 @@ export default function HomePage() {
                   onClick={() => setActiveCategory(category.id)}
                 >
                   <div
-                    className={`p-8 flex flex-col items-center text-center ${activeCategory === category.id ? "bg-indigo-50" : ""}`}
+                    className={`p-8 flex flex-col items-center text-center ${
+                      activeCategory === category.id ? "bg-indigo-50" : ""
+                    }`}
                   >
                     <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 mb-4">
                       {category.icon}
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">{category.name}</h3>
-                    <p className="text-sm text-gray-500">{category.count} places</p>
+                    <h3 className="text-lg font-semibold mb-2">
+                      {category.name}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      {category.count} places
+                    </p>
                   </div>
                 </motion.div>
               ))}
@@ -294,7 +362,10 @@ export default function HomePage() {
               </motion.div>
             </div>
 
-            <motion.div variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <motion.div
+              variants={staggerContainer}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+            >
               {featuredPlaces.map((place) => (
                 <motion.div
                   key={place.id}
@@ -320,17 +391,24 @@ export default function HomePage() {
                     </h3>
 
                     <div className="flex flex-wrap gap-2 mb-3">
-                      {place.tags.map((tag, index) => (
-                        <span key={index} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                          {tag}
+                      {place.tags.slice(0, 5).map((tag, index) => (
+                        <span
+                          key={index}
+                          className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full"
+                        >
+                          {tag.replace(/_/g, " ").slice(0, 15)}
                         </span>
                       ))}
                     </div>
 
-                    <p className="text-sm text-gray-500 mb-4 line-clamp-2">{place.description}</p>
+                    <p className="text-sm text-gray-500 mb-4 line-clamp-2">
+                      {place.description}
+                    </p>
 
                     <div className="flex justify-between items-center">
-                      <span className="text-xs text-gray-400">{place.reviews} reviews</span>
+                      <span className="text-xs text-gray-400">
+                        {place.reviews} reviews
+                      </span>
                       <a
                         href={`/place/${place.id}`}
                         className="text-indigo-600 text-sm font-medium flex items-center gap-1 hover:gap-2 transition-all"
@@ -363,10 +441,12 @@ export default function HomePage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.6 }}
                   >
-                    <h2 className="text-3xl font-bold mb-6">Explore Neighborhoods</h2>
+                    <h2 className="text-3xl font-bold mb-6">
+                      Explore Neighborhoods
+                    </h2>
                     <p className="text-gray-600 mb-8">
-                      Discover the unique character of Bangalore's diverse neighborhoods, each with its own charm and
-                      attractions.
+                      Discover the unique character of Bangalore's diverse
+                      neighborhoods, each with its own charm and attractions.
                     </p>
 
                     <div className="space-y-4">
@@ -378,21 +458,15 @@ export default function HomePage() {
                         >
                           <div className="flex items-center gap-3">
                             <MapPin className="w-5 h-5 text-indigo-500" />
-                            <span className="font-medium">{neighborhood.name}</span>
+                            <span className="font-medium">
+                              {neighborhood.name}
+                            </span>
                           </div>
-                          <div className="text-sm text-gray-500">{neighborhood.count} places</div>
+                          <div className="text-sm text-gray-500">
+                            {neighborhood.count} places
+                          </div>
                         </motion.div>
                       ))}
-                    </div>
-
-                    <div className="mt-8">
-                      <a
-                        href="/neighborhoods"
-                        className="inline-flex items-center gap-2 text-indigo-600 font-medium hover:text-indigo-700"
-                      >
-                        View all neighborhoods
-                        <ChevronRight className="w-4 h-4" />
-                      </a>
                     </div>
                   </motion.div>
                 </div>
@@ -434,9 +508,15 @@ export default function HomePage() {
                       <div className="bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-lg">
                         <h3 className="font-bold mb-2">Discover Bangalore</h3>
                         <p className="text-sm text-gray-600 mb-3">
-                          Interactive map with 500+ curated locations across the city
+                          Interactive map with 500+ curated locations across the
+                          city
                         </p>
-                        <button className="text-sm bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                        <button
+                          className="text-sm bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                          onClick={() => {
+                            window.location.href = "/explore";
+                          }}
+                        >
                           <Map className="w-4 h-4" />
                           Open full map
                         </button>
@@ -458,10 +538,16 @@ export default function HomePage() {
           className="py-16 bg-indigo-50"
         >
           <div className="container mx-auto px-4">
-            <motion.div variants={itemFadeIn} className="text-center max-w-3xl mx-auto mb-12">
-              <h2 className="text-3xl font-bold mb-4">Personalized Recommendations</h2>
+            <motion.div
+              variants={itemFadeIn}
+              className="text-center max-w-3xl mx-auto mb-12"
+            >
+              <h2 className="text-3xl font-bold mb-4">
+                Personalized Recommendations
+              </h2>
               <p className="text-gray-600">
-                Tell us what you like, and our AI will suggest the perfect places for you in Bangalore.
+                Tell us what you like, and our AI will suggest the perfect
+                places for you in Bangalore.
               </p>
             </motion.div>
 
@@ -472,7 +558,9 @@ export default function HomePage() {
               <div className="p-8">
                 <div className="flex flex-col md:flex-row gap-6 mb-8">
                   <motion.div variants={itemFadeIn} className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">I'm looking for</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      I'm looking for
+                    </label>
                     <select className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                       <option>Restaurants & Cafes</option>
                       <option>Bars & Nightlife</option>
@@ -483,7 +571,9 @@ export default function HomePage() {
                   </motion.div>
 
                   <motion.div variants={itemFadeIn} className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">My vibe is</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      My vibe is
+                    </label>
                     <select className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                       <option>Casual & Relaxed</option>
                       <option>Trendy & Hip</option>
@@ -494,7 +584,9 @@ export default function HomePage() {
                   </motion.div>
 
                   <motion.div variants={itemFadeIn} className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">My budget is</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      My budget is
+                    </label>
                     <select className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                       <option>Budget-friendly</option>
                       <option>Mid-range</option>
@@ -515,7 +607,10 @@ export default function HomePage() {
                   ></textarea>
                 </motion.div>
 
-                <motion.div variants={itemFadeIn} className="flex justify-center">
+                <motion.div
+                  variants={itemFadeIn}
+                  className="flex justify-center"
+                >
                   <button className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
                     <Compass className="w-5 h-5" />
                     Find My Perfect Places
@@ -529,11 +624,16 @@ export default function HomePage() {
               >
                 <div className="flex items-center gap-3">
                   <Sparkles className="w-6 h-6" />
-                  <p className="font-medium">Our AI analyzes 10,000+ places to find your perfect match</p>
+                  <p className="font-medium">
+                    Our AI analyzes 10,000+ places to find your perfect match
+                  </p>
                 </div>
-                <a href="/how-it-works" className="text-white/80 hover:text-white underline text-sm">
+                {/* <a
+                  href="/how-it-works"
+                  className="text-white/80 hover:text-white underline text-sm"
+                >
                   How it works
-                </a>
+                </a> */}
               </motion.div>
             </motion.div>
           </div>
@@ -549,9 +649,12 @@ export default function HomePage() {
                 transition={{ duration: 0.6 }}
                 viewport={{ once: true }}
               >
-                <h2 className="text-3xl font-bold mb-6">Ready to Explore Bangalore?</h2>
+                <h2 className="text-3xl font-bold mb-6">
+                  Ready to Explore Bangalore?
+                </h2>
                 <p className="text-xl text-gray-600 mb-8">
-                  Start discovering places that match your preferences and interests.
+                  Start discovering places that match your preferences and
+                  interests.
                 </p>
                 <a
                   href="/explore"
@@ -576,7 +679,8 @@ export default function HomePage() {
                 ExCarte
               </div>
               <p className="text-gray-400 mb-4">
-                Discover your perfect spot in Bangalore with personalized recommendations.
+                Discover your perfect spot in Bangalore with personalized
+                recommendations.
               </p>
             </div>
 
@@ -584,23 +688,35 @@ export default function HomePage() {
               <h3 className="text-lg font-semibold mb-4">Explore</h3>
               <ul className="space-y-2">
                 <li>
-                  <a href="/explore" className="text-gray-400 hover:text-white transition-colors">
+                  <a
+                    href="/explore"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
                     All Places
                   </a>
                 </li>
                 <li>
-                  <a href="/categories" className="text-gray-400 hover:text-white transition-colors">
-                    Categories
+                  <a
+                    href="/exlpore"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    Explore
                   </a>
                 </li>
                 <li>
-                  <a href="/neighborhoods" className="text-gray-400 hover:text-white transition-colors">
-                    Neighborhoods
+                  <a
+                    href="/user/reviews"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    Your Reviews
                   </a>
                 </li>
                 <li>
-                  <a href="/collections" className="text-gray-400 hover:text-white transition-colors">
-                    Collections
+                  <a
+                    href="/profile"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    Profile
                   </a>
                 </li>
               </ul>
@@ -610,22 +726,34 @@ export default function HomePage() {
               <h3 className="text-lg font-semibold mb-4">Company</h3>
               <ul className="space-y-2">
                 <li>
-                  <a href="/about" className="text-gray-400 hover:text-white transition-colors">
+                  <a
+                    href="/about"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
                     About Us
                   </a>
                 </li>
                 <li>
-                  <a href="/contact" className="text-gray-400 hover:text-white transition-colors">
+                  <a
+                    href="/contact"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
                     Contact
                   </a>
                 </li>
                 <li>
-                  <a href="/careers" className="text-gray-400 hover:text-white transition-colors">
+                  <a
+                    href="/careers"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
                     Careers
                   </a>
                 </li>
                 <li>
-                  <a href="/press" className="text-gray-400 hover:text-white transition-colors">
+                  <a
+                    href="/press"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
                     Press
                   </a>
                 </li>
@@ -636,17 +764,26 @@ export default function HomePage() {
               <h3 className="text-lg font-semibold mb-4">Legal</h3>
               <ul className="space-y-2">
                 <li>
-                  <a href="/terms" className="text-gray-400 hover:text-white transition-colors">
+                  <a
+                    href="/terms"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
                     Terms of Service
                   </a>
                 </li>
                 <li>
-                  <a href="/privacy" className="text-gray-400 hover:text-white transition-colors">
+                  <a
+                    href="/privacy"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
                     Privacy Policy
                   </a>
                 </li>
                 <li>
-                  <a href="/cookies" className="text-gray-400 hover:text-white transition-colors">
+                  <a
+                    href="/cookies"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
                     Cookie Policy
                   </a>
                 </li>
@@ -655,11 +792,21 @@ export default function HomePage() {
           </div>
 
           <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-400 text-sm">&copy; {new Date().getFullYear()} ExCarte. All rights reserved.</p>
+            <p className="text-gray-400 text-sm">
+              &copy; {new Date().getFullYear()} ExCarte. All rights reserved.
+            </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              <a
+                href="#"
+                className="text-gray-400 hover:text-white transition-colors"
+              >
                 <span className="sr-only">Facebook</span>
-                <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <svg
+                  className="h-6 w-6"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
                   <path
                     fillRule="evenodd"
                     d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"
@@ -667,9 +814,17 @@ export default function HomePage() {
                   />
                 </svg>
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              <a
+                href="#"
+                className="text-gray-400 hover:text-white transition-colors"
+              >
                 <span className="sr-only">Instagram</span>
-                <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <svg
+                  className="h-6 w-6"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
                   <path
                     fillRule="evenodd"
                     d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z"
@@ -677,9 +832,17 @@ export default function HomePage() {
                   />
                 </svg>
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              <a
+                href="#"
+                className="text-gray-400 hover:text-white transition-colors"
+              >
                 <span className="sr-only">Twitter</span>
-                <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <svg
+                  className="h-6 w-6"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
                   <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
                 </svg>
               </a>
@@ -688,5 +851,5 @@ export default function HomePage() {
         </div>
       </footer>
     </div>
-  )
+  );
 }

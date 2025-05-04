@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Star, Clock, MapPin, Coffee, CreditCard } from "lucide-react";
+import googleIcon from "../../assets/google.svg";
 
 export interface MapHoverCardProps {
   place: {
@@ -24,18 +25,30 @@ export interface MapHoverCardProps {
 }
 
 const MapHoverCard: React.FC<MapHoverCardProps> = ({ place, style }) => {
-  // Format rating for display - use google rating if available, otherwise use local rating
-  const rating = place.google_average_rating || place.average_rating || 0;
-  const reviewCount = place.google_total_reviews || place.total_reviews || 0;
+  console.log("Place data:", place);
+  console.log("Style data:", style);
+  const rating =
+    ((place.google_total_reviews || 0) * (place.google_average_rating || 0) +
+      (place.total_reviews || 0) * (place.average_rating || 0)) /
+    ((place.google_total_reviews || 0) + (place.total_reviews || 0) || 1);
+  const reviewCount = place.total_reviews || 0;
 
   // Get current day for highlighting today's hours
   const getTodayHours = () => {
     if (!place.opening_hours || place.opening_hours.length === 0)
       return "Hours not available";
 
-    const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const weekdays = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
     const today = weekdays[new Date().getDay()];
-    
+
     const todayHours = place.opening_hours.find((hours) =>
       hours.toLowerCase().startsWith(today.toLowerCase())
     );
@@ -96,10 +109,10 @@ const MapHoverCard: React.FC<MapHoverCardProps> = ({ place, style }) => {
             )}
           </div>
         )}
-        
+
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        
+
         {/* Name and price badge */}
         <div className="absolute bottom-0 left-0 right-0 p-3">
           <div className="flex justify-between items-center">
@@ -107,48 +120,60 @@ const MapHoverCard: React.FC<MapHoverCardProps> = ({ place, style }) => {
               {place.name}
             </h3>
             {place.priceLevel && getPriceIndicator(place.priceLevel) && (
-              <span className="bg-white/90 px-2 py-0.5 rounded-full text-xs font-medium">
+              <span className="bg-white/90 px-2 py-0.5 rounded-full text-xs font-medium flex-col items-center">
                 {getPriceIndicator(place.priceLevel)}
               </span>
             )}
           </div>
         </div>
       </div>
-      
+
       {/* Content section */}
       <div className="p-3 mouse-pointer">
         {/* Rating and review count */}
         <div className="flex items-center mb-2">
           <div className="flex items-center">
             <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-            <span className="ml-1 text-sm font-medium">{rating.toFixed(1)}</span>
+            <span className="ml-1 text-sm font-medium">
+              {rating.toFixed(1)}
+            </span>
           </div>
           <span className="mx-1 text-gray-400">•</span>
           <span className="text-xs text-gray-500">{reviewCount} reviews</span>
-          
-          {/* Tags */}
-          {displayTags.length > 0 && (
-            <>
-              <span className="mx-1 text-gray-400">•</span>
-              <div className="flex flex-wrap gap-1">
-                {displayTags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="bg-blue-50 text-blue-700 text-xs px-1.5 py-0.5 rounded-full"
-                  >
-                    {tag.replace(/_/g, " ")}
-                  </span>
-                ))}
-              </div>
-            </>
+          {place.google_total_reviews && (
+          <div className="bg-gray-100 rounded-full ml-2 px-2 py-1 flex items-center text-xs gap-1">
+            <img src={googleIcon} className="w-4 h-4" />
+            <span>
+              {place.google_total_reviews
+                ? place.google_total_reviews.toString()
+                : "N/A"}
+            </span>
+          </div>
           )}
         </div>
-        
+
+        {/* Tags */}
+        {displayTags.length > 0 && (
+          <>
+            <div className="flex flex-wrap gap-1 py-2">
+              {displayTags.map((tag, index) => (
+                <span
+                  key={index}
+                  className="bg-blue-50 text-blue-700 text-xs px-1.5 py-0.5 rounded-full"
+                >
+                  {tag.replace(/_/g, " ").slice(0, 15) +
+                    (tag.length > 15 && "...")}
+                </span>
+              ))}
+            </div>
+          </>
+        )}
+
         {/* Description */}
         <p className="text-xs text-gray-600 line-clamp-2 mb-2 mouse-pointer">
           {place.description}
         </p>
-        
+
         {/* Additional info section */}
         <div className="border-t border-gray-100 pt-2 space-y-1">
           {/* Address */}
@@ -160,7 +185,7 @@ const MapHoverCard: React.FC<MapHoverCardProps> = ({ place, style }) => {
               </span>
             </div>
           )}
-          
+
           {/* Hours */}
           {place.opening_hours && place.opening_hours.length > 0 && (
             <div className="flex items-start gap-1.5">
@@ -170,7 +195,7 @@ const MapHoverCard: React.FC<MapHoverCardProps> = ({ place, style }) => {
               </span>
             </div>
           )}
-          
+
           {/* Amenities */}
           <div className="flex items-center gap-2 mt-1">
             {place.serves_coffee && (

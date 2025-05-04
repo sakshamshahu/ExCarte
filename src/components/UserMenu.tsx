@@ -82,20 +82,6 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
           <Menu.Item>
             {({ active }) => (
               <button
-                onClick={() => navigate('/profile/favorites')}
-                className={`${
-                  active ? 'bg-gray-50' : ''
-                } flex w-full items-center px-4 py-2 text-sm text-gray-700`}
-              >
-                <Heart className="mr-3 h-4 w-4" />
-                Favorites
-              </button>
-            )}
-          </Menu.Item>
-
-          <Menu.Item>
-            {({ active }) => (
-              <button
                 onClick={() => navigate('/user/reviews')}
                 className={`${
                   active ? 'bg-gray-50' : ''

@@ -78,7 +78,7 @@ const PlaceDetails: React.FC<PlaceDetailsProps> = ({ place, onClose }) => {
             onClose();
           }
         }}
-        // 'esc' to close 
+        // 'esc' to close
         onKeyDown={(e) => {
           if (e.key === "Escape") {
             onClose();
@@ -143,9 +143,21 @@ const PlaceDetails: React.FC<PlaceDetailsProps> = ({ place, onClose }) => {
                       </span>
                     </div>
                   )}
+                </div>
+                <div className="flex items-center mt-2">
+                  <Star className="h-5 w-5 text-yellow-400 fill-current" />
+                  <span className="ml-1 font-medium">
+                    {place.average_rating?.toFixed(1) || "N/A"}
+                  </span>
+                  <span className="mx-1">•</span>
+                  <span className="text-gray-600">
+                    {place.total_reviews
+                      ? `${place.total_reviews.toLocaleString()} reviews`
+                      : "No reviews yet"}
+                  </span>
                   {/* Google Reviews Badge */}
                   {place.google_total_reviews > 0 && (
-                    <div className="ml-2 group relative hover:cursor-pointer">
+                    <div className="ml-2 group relative w-fit hover:cursor-pointer">
                       <div className="bg-gray-100 rounded-full px-2 py-1 flex items-center text-xs gap-1">
                         <img src={googleIcon} className="w-4 h-4" />
                         <span>
@@ -160,18 +172,6 @@ const PlaceDetails: React.FC<PlaceDetailsProps> = ({ place, onClose }) => {
                       </span>
                     </div>
                   )}
-                </div>
-                <div className="flex items-center mt-2">
-                  <Star className="h-5 w-5 text-yellow-400 fill-current" />
-                  <span className="ml-1 font-medium">
-                    {place.average_rating?.toFixed(1) || "N/A"}
-                  </span>
-                  <span className="mx-1">•</span>
-                  <span className="text-gray-600">
-                    {place.total_reviews
-                      ? `${place.total_reviews.toLocaleString()} reviews`
-                      : "No reviews yet"}
-                  </span>
                 </div>
                 <div className="mt-1">
                   <span className="text-sm text-gray-600">

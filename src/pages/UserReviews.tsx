@@ -28,6 +28,7 @@ const UserReviews = () => {
       try {
         const reviewsData = await api.reviews.getForUser(user.id);
         setReviews(reviewsData);
+        console.log('User reviews:', reviewsData);
       } catch (error) {
         console.error('Error fetching user reviews:', error);
         toast.error('Failed to load your reviews');
@@ -116,7 +117,7 @@ const UserReviews = () => {
                     </div>
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => navigate(`/place/${review.place_id}/reviews`)}
+                        onClick={() => navigate(`/place/${review.place_id}`)}
                         className="px-3 py-1 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
                       >
                         View Place

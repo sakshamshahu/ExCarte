@@ -16,7 +16,7 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect }) => {
     x: number;
     y: number;
   } | null>(null);
-  
+
   // Add timeout ref to handle hover delays
   const hoverTimeoutRef = useRef<number | null>(null);
   const popupRef = useRef<HTMLDivElement>(null);
@@ -35,8 +35,8 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect }) => {
       style:
         "https://api.olamaps.io/tiles/vector/v1/styles/default-light-standard/style.json",
       container: mapRef.current,
-      center: [77.6014, 12.9757], //map center coordinates
-      zoom: 13,
+      center: [77.6214, 12.9257], //map center coordinates
+      zoom: 12,
     });
 
     mapInstanceRef.current = myMap;
@@ -170,19 +170,27 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect }) => {
           const place = {
             id: properties.id,
             name: properties.name,
-            description: properties.description || '',
-            category: properties.category || '',
-            average_rating: properties.average_rating || properties.google_average_rating || 0,
-            total_reviews: properties.total_reviews || properties.google_total_reviews || 0,
+            description: properties.description || "",
+            category: properties.category || "",
+            average_rating: properties.average_rating || 0,
+            google_average_rating: properties.google_average_rating || 0,
+            total_reviews: properties.total_reviews || 0,
+            google_total_reviews: properties.google_total_reviews || 0,
             latitude: feature.geometry.coordinates[1],
             longitude: feature.geometry.coordinates[0],
-            address: properties.address || '',
+            address: properties.address || "",
             images: properties.images ? JSON.parse(properties.images) : [],
             tags: properties.tags ? JSON.parse(properties.tags) : [],
-            serves_coffee: properties.serves_coffee === 'true' || properties.serves_coffee === true,
-            acceptsCreditCards: properties.acceptsCreditCards === 'true' || properties.acceptsCreditCards === true,
-            priceLevel: properties.priceLevel || '',
-            opening_hours: properties.opening_hours ? JSON.parse(properties.opening_hours) : [],
+            serves_coffee:
+              properties.serves_coffee === "true" ||
+              properties.serves_coffee === true,
+            acceptsCreditCards:
+              properties.acceptsCreditCards === "true" ||
+              properties.acceptsCreditCards === true,
+            priceLevel: properties.priceLevel || "",
+            opening_hours: properties.opening_hours
+              ? JSON.parse(properties.opening_hours)
+              : [],
           };
 
           // Clear any existing timeout
@@ -205,7 +213,7 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect }) => {
 
       myMap.on("mouseleave", "places-points", () => {
         myMap.getCanvas().style.cursor = "";
-        
+
         // Set a short timeout before closing the popup
         // This gives time for the mouse to move to the popup if that's where it's heading
         hoverTimeoutRef.current = window.setTimeout(() => {
@@ -233,11 +241,11 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect }) => {
   // Helper function to check if mouse is over an element
   const isMouseOverElement = (element: HTMLElement): boolean => {
     if (!element) return false;
-    
+
     const rect = element.getBoundingClientRect();
     const mouseX = window.mouseX || 0;
     const mouseY = window.mouseY || 0;
-    
+
     return (
       mouseX >= rect.left &&
       mouseX <= rect.right &&
@@ -252,11 +260,11 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect }) => {
       window.mouseX = e.clientX;
       window.mouseY = e.clientY;
     };
-    
-    window.addEventListener('mousemove', trackMousePosition);
-    
+
+    window.addEventListener("mousemove", trackMousePosition);
+
     return () => {
-      window.removeEventListener('mousemove', trackMousePosition);
+      window.removeEventListener("mousemove", trackMousePosition);
     };
   }, []);
 
@@ -298,32 +306,39 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect }) => {
     if (!popupPosition || !mapRef.current) return null;
 
     const mapRect = mapRef.current.getBoundingClientRect();
-    const padding = 10; // Padding from viewport edges
-    
-    // Default position (centered above point)
-    let transformStyle = 'translate(-50%, -100%)';
+    const padding = 10; // Padding from the edges of the map
+
+    // Default position (centered above the point)
+    let transformStyle = "translate(-50%, -100%)";
     let left = popupPosition.x;
     let top = popupPosition.y;
-    
-    // Check if card would go beyond the top of the map
+
+    // Check if the card would go beyond the top of the map
     if (popupPosition.y - cardSize.height < mapRect.top + padding) {
       // Position below the point instead of above
-      top = popupPosition.y;
-      transformStyle = 'translate(-50%, 10px)';
+      top = popupPosition.y + 10; // Add some space below the point
+      transformStyle = "translate(-50%, 0)";
     }
-    
-    // Check if card would go beyond the left edge of the map
-    if (popupPosition.x - (cardSize.width / 2) < mapRect.left + padding) {
-      // Align left edge with padding
-      left = mapRect.left + padding + (cardSize.width / 2);
+
+    // Check if the card would go beyond the left edge of the map
+    if (popupPosition.x - cardSize.width / 2 < mapRect.left + padding) {
+      // Align the left edge with padding
+      left = mapRect.left + padding + cardSize.width / 2;
     }
-    
-    // Check if card would go beyond the right edge of the map
-    if (popupPosition.x + (cardSize.width / 2) > mapRect.right - padding) {
-      // Align right edge with padding
-      left = mapRect.right - padding - (cardSize.width / 2);
+
+    // Check if the card would go beyond the right edge of the map
+    if (popupPosition.x + cardSize.width / 2 > mapRect.right - padding) {
+      // Align the right edge with padding
+      left = mapRect.right - padding - cardSize.width / 2;
     }
-    
+
+    // Check if the card would go beyond the bottom of the map
+    if (popupPosition.y + cardSize.height > mapRect.bottom - padding) {
+      // Adjust the position to fit within the bottom edge
+      top = mapRect.bottom - padding - cardSize.height;
+      transformStyle = "translate(-50%, 0)";
+    }
+
     return { x: left, y: top, transform: transformStyle };
   };
 
@@ -336,10 +351,10 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect }) => {
 
       {/* Hidden div to measure card size */}
       {hoveredPlace && (
-        <div 
-          ref={cardMeasureRef} 
+        <div
+          ref={cardMeasureRef}
           className="absolute opacity-0 pointer-events-none"
-          style={{ visibility: 'hidden' }}
+          style={{ visibility: "hidden" }}
         >
           <MapHoverCard place={hoveredPlace} />
         </div>
@@ -349,12 +364,12 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect }) => {
       {hoveredPlace && popupPosition && constrainedPosition && (
         <div
           ref={popupRef}
-          className="absolute text-sm mb-2 z-50 mouse-pointer"
+          className="absolute text-sm mb-2 z-50"
           style={{
             left: constrainedPosition.x,
             top: constrainedPosition.y,
             transform: constrainedPosition.transform,
-            pointerEvents: 'auto', // Changed from 'none' to allow hover events
+            pointerEvents: "auto", // Allow interaction with the card
           }}
           onMouseEnter={handlePopupMouseEnter}
           onMouseLeave={handlePopupMouseLeave}
