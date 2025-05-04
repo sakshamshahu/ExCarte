@@ -669,6 +669,7 @@ export default function HomePage() {
                     }
                     if (category !== "") queryParams.push(`category=${encodeURIComponent(category)}`);
                     if (selectedPriceLevel !== "") queryParams.push(`priceLevel=${encodeURIComponent(selectedPriceLevel)}`);
+                    if (selectedArea !== "" && selectedArea !== "all") queryParams.push(`area=${encodeURIComponent(selectedArea)}`);
                     const queryString = queryParams.length > 0 ? `?${queryParams.join("&")}` : "";
                     window.location.href = `/explore${queryString}`;
                    }}
