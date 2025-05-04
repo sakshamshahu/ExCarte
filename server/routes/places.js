@@ -149,6 +149,7 @@ function prepareCreateData(place, id = null) {
     google_average_rating: parseFloat(place.average_rating) || 0,
     google_total_reviews: parseInt(place.total_reviews) || 0,
     heat_score: parseFloat(place.heat_score) || 0,
+    area: place.area || ""
   };
 }
 
@@ -377,6 +378,7 @@ router.get("/", async (req, res) => {
       search,
       page = 1, // Default to page 1
       pageSize = 30, // Default 30 places per page
+      priceLevel,
       ...booleanFilters
     } = req.query;
 
@@ -448,6 +450,14 @@ router.get("/", async (req, res) => {
       }
     });
 
+    if(priceLevel) {
+      whereClause = {
+        ...whereClause,
+        priceLevel: {
+          equals: priceLevel,
+        },
+      };
+    }
     // Fetch total count for pagination
     const totalPlaces = await PrismaClient.client.places.count({
       where: whereClause,

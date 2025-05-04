@@ -205,7 +205,8 @@ exports.Prisma.PlacesScalarFieldEnum = {
   reviewsUri: 'reviewsUri',
   photosUri: 'photosUri',
   google_average_rating: 'google_average_rating',
-  google_total_reviews: 'google_total_reviews'
+  google_total_reviews: 'google_total_reviews',
+  area: 'area'
 };
 
 exports.Prisma.ReviewsScalarFieldEnum = {

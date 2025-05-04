@@ -127,6 +127,7 @@ model places {
   photosUri                    String    @default("")
   google_average_rating        Float     @default(0)
   google_total_reviews         Int       @default(0)
+  area                         String    @default("")
 }
 
 model reviews {

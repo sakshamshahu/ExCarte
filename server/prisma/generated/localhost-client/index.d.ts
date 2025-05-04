@@ -3262,6 +3262,7 @@ export namespace Prisma {
     photosUri: string | null
     google_average_rating: number | null
     google_total_reviews: number | null
+    area: string | null
   }
 
   export type PlacesMaxAggregateOutputType = {
@@ -3324,6 +3325,7 @@ export namespace Prisma {
     photosUri: string | null
     google_average_rating: number | null
     google_total_reviews: number | null
+    area: string | null
   }
 
   export type PlacesCountAggregateOutputType = {
@@ -3389,6 +3391,7 @@ export namespace Prisma {
     photosUri: number
     google_average_rating: number
     google_total_reviews: number
+    area: number
     _all: number
   }
 
@@ -3473,6 +3476,7 @@ export namespace Prisma {
     photosUri?: true
     google_average_rating?: true
     google_total_reviews?: true
+    area?: true
   }
 
   export type PlacesMaxAggregateInputType = {
@@ -3535,6 +3539,7 @@ export namespace Prisma {
     photosUri?: true
     google_average_rating?: true
     google_total_reviews?: true
+    area?: true
   }
 
   export type PlacesCountAggregateInputType = {
@@ -3600,6 +3605,7 @@ export namespace Prisma {
     photosUri?: true
     google_average_rating?: true
     google_total_reviews?: true
+    area?: true
     _all?: true
   }
 
@@ -3752,6 +3758,7 @@ export namespace Prisma {
     photosUri: string
     google_average_rating: number
     google_total_reviews: number
+    area: string
     _count: PlacesCountAggregateOutputType | null
     _avg: PlacesAvgAggregateOutputType | null
     _sum: PlacesSumAggregateOutputType | null
@@ -3836,6 +3843,7 @@ export namespace Prisma {
     photosUri?: boolean
     google_average_rating?: boolean
     google_total_reviews?: boolean
+    area?: boolean
     reviews?: boolean | places$reviewsArgs<ExtArgs>
     _count?: boolean | PlacesCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["places"]>
@@ -3903,6 +3911,7 @@ export namespace Prisma {
     photosUri?: boolean
     google_average_rating?: boolean
     google_total_reviews?: boolean
+    area?: boolean
   }, ExtArgs["result"]["places"]>
 
   export type placesSelectScalar = {
@@ -3968,6 +3977,7 @@ export namespace Prisma {
     photosUri?: boolean
     google_average_rating?: boolean
     google_total_reviews?: boolean
+    area?: boolean
   }
 
   export type placesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4044,6 +4054,7 @@ export namespace Prisma {
       photosUri: string
       google_average_rating: number
       google_total_reviews: number
+      area: string
     }, ExtArgs["result"]["places"]>
     composites: {}
   }
@@ -4500,6 +4511,7 @@ export namespace Prisma {
     readonly photosUri: FieldRef<"places", 'String'>
     readonly google_average_rating: FieldRef<"places", 'Float'>
     readonly google_total_reviews: FieldRef<"places", 'Int'>
+    readonly area: FieldRef<"places", 'String'>
   }
     
 
@@ -5948,7 +5960,8 @@ export namespace Prisma {
     reviewsUri: 'reviewsUri',
     photosUri: 'photosUri',
     google_average_rating: 'google_average_rating',
-    google_total_reviews: 'google_total_reviews'
+    google_total_reviews: 'google_total_reviews',
+    area: 'area'
   };
 
   export type PlacesScalarFieldEnum = (typeof PlacesScalarFieldEnum)[keyof typeof PlacesScalarFieldEnum]
@@ -6293,6 +6306,7 @@ export namespace Prisma {
     photosUri?: StringFilter<"places"> | string
     google_average_rating?: FloatFilter<"places"> | number
     google_total_reviews?: IntFilter<"places"> | number
+    area?: StringFilter<"places"> | string
     reviews?: ReviewsListRelationFilter
   }
 
@@ -6359,6 +6373,7 @@ export namespace Prisma {
     photosUri?: SortOrder
     google_average_rating?: SortOrder
     google_total_reviews?: SortOrder
+    area?: SortOrder
     reviews?: reviewsOrderByRelationAggregateInput
   }
 
@@ -6428,6 +6443,7 @@ export namespace Prisma {
     photosUri?: StringFilter<"places"> | string
     google_average_rating?: FloatFilter<"places"> | number
     google_total_reviews?: IntFilter<"places"> | number
+    area?: StringFilter<"places"> | string
     reviews?: ReviewsListRelationFilter
   }, "id" | "id">
 
@@ -6494,6 +6510,7 @@ export namespace Prisma {
     photosUri?: SortOrder
     google_average_rating?: SortOrder
     google_total_reviews?: SortOrder
+    area?: SortOrder
     _count?: placesCountOrderByAggregateInput
     _avg?: placesAvgOrderByAggregateInput
     _max?: placesMaxOrderByAggregateInput
@@ -6567,6 +6584,7 @@ export namespace Prisma {
     photosUri?: StringWithAggregatesFilter<"places"> | string
     google_average_rating?: FloatWithAggregatesFilter<"places"> | number
     google_total_reviews?: IntWithAggregatesFilter<"places"> | number
+    area?: StringWithAggregatesFilter<"places"> | string
   }
 
   export type reviewsWhereInput = {
@@ -6857,6 +6875,7 @@ export namespace Prisma {
     photosUri?: string
     google_average_rating?: number
     google_total_reviews?: number
+    area?: string
     reviews?: reviewsCreateNestedManyWithoutPlaceInput
   }
 
@@ -6923,6 +6942,7 @@ export namespace Prisma {
     photosUri?: string
     google_average_rating?: number
     google_total_reviews?: number
+    area?: string
     reviews?: reviewsUncheckedCreateNestedManyWithoutPlaceInput
   }
 
@@ -6989,6 +7009,7 @@ export namespace Prisma {
     photosUri?: StringFieldUpdateOperationsInput | string
     google_average_rating?: FloatFieldUpdateOperationsInput | number
     google_total_reviews?: IntFieldUpdateOperationsInput | number
+    area?: StringFieldUpdateOperationsInput | string
     reviews?: reviewsUpdateManyWithoutPlaceNestedInput
   }
 
@@ -7055,6 +7076,7 @@ export namespace Prisma {
     photosUri?: StringFieldUpdateOperationsInput | string
     google_average_rating?: FloatFieldUpdateOperationsInput | number
     google_total_reviews?: IntFieldUpdateOperationsInput | number
+    area?: StringFieldUpdateOperationsInput | string
     reviews?: reviewsUncheckedUpdateManyWithoutPlaceNestedInput
   }
 
@@ -7121,6 +7143,7 @@ export namespace Prisma {
     photosUri?: string
     google_average_rating?: number
     google_total_reviews?: number
+    area?: string
   }
 
   export type placesUpdateManyMutationInput = {
@@ -7186,6 +7209,7 @@ export namespace Prisma {
     photosUri?: StringFieldUpdateOperationsInput | string
     google_average_rating?: FloatFieldUpdateOperationsInput | number
     google_total_reviews?: IntFieldUpdateOperationsInput | number
+    area?: StringFieldUpdateOperationsInput | string
   }
 
   export type placesUncheckedUpdateManyInput = {
@@ -7251,6 +7275,7 @@ export namespace Prisma {
     photosUri?: StringFieldUpdateOperationsInput | string
     google_average_rating?: FloatFieldUpdateOperationsInput | number
     google_total_reviews?: IntFieldUpdateOperationsInput | number
+    area?: StringFieldUpdateOperationsInput | string
   }
 
   export type reviewsCreateInput = {
@@ -7636,6 +7661,7 @@ export namespace Prisma {
     photosUri?: SortOrder
     google_average_rating?: SortOrder
     google_total_reviews?: SortOrder
+    area?: SortOrder
   }
 
   export type placesAvgOrderByAggregateInput = {
@@ -7708,6 +7734,7 @@ export namespace Prisma {
     photosUri?: SortOrder
     google_average_rating?: SortOrder
     google_total_reviews?: SortOrder
+    area?: SortOrder
   }
 
   export type placesMinOrderByAggregateInput = {
@@ -7770,6 +7797,7 @@ export namespace Prisma {
     photosUri?: SortOrder
     google_average_rating?: SortOrder
     google_total_reviews?: SortOrder
+    area?: SortOrder
   }
 
   export type placesSumOrderByAggregateInput = {
@@ -8619,6 +8647,7 @@ export namespace Prisma {
     photosUri?: string
     google_average_rating?: number
     google_total_reviews?: number
+    area?: string
   }
 
   export type placesUncheckedCreateWithoutReviewsInput = {
@@ -8684,6 +8713,7 @@ export namespace Prisma {
     photosUri?: string
     google_average_rating?: number
     google_total_reviews?: number
+    area?: string
   }
 
   export type placesCreateOrConnectWithoutReviewsInput = {
@@ -8802,6 +8832,7 @@ export namespace Prisma {
     photosUri?: StringFieldUpdateOperationsInput | string
     google_average_rating?: FloatFieldUpdateOperationsInput | number
     google_total_reviews?: IntFieldUpdateOperationsInput | number
+    area?: StringFieldUpdateOperationsInput | string
   }
 
   export type placesUncheckedUpdateWithoutReviewsInput = {
@@ -8867,6 +8898,7 @@ export namespace Prisma {
     photosUri?: StringFieldUpdateOperationsInput | string
     google_average_rating?: FloatFieldUpdateOperationsInput | number
     google_total_reviews?: IntFieldUpdateOperationsInput | number
+    area?: StringFieldUpdateOperationsInput | string
   }
 
   export type user_preferencesCreateManyUserInput = {
