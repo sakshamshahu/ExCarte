@@ -19,6 +19,7 @@ export interface Place {
   address: string;
   images: string[];
   tags: string[];
+  area: string;
 }
 
 export interface User {

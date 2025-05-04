@@ -25,8 +25,6 @@ export interface MapHoverCardProps {
 }
 
 const MapHoverCard: React.FC<MapHoverCardProps> = ({ place, style }) => {
-  console.log("Place data:", place);
-  console.log("Style data:", style);
   const rating =
     ((place.google_total_reviews || 0) * (place.google_average_rating || 0) +
       (place.total_reviews || 0) * (place.average_rating || 0)) /
@@ -87,7 +85,7 @@ const MapHoverCard: React.FC<MapHoverCardProps> = ({ place, style }) => {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95, y: 10 }}
       transition={{ duration: 0.2 }}
-      className="bg-white rounded-lg shadow-lg overflow-hidden w-64"
+      className="bg-white rounded-[1rem] shadow-lg overflow-hidden w-[18rem]"
       aria-label="Place Card"
       style={{
         ...style,
@@ -116,7 +114,7 @@ const MapHoverCard: React.FC<MapHoverCardProps> = ({ place, style }) => {
         {/* Name and price badge */}
         <div className="absolute bottom-0 left-0 right-0 p-3">
           <div className="flex justify-between items-center">
-            <h3 className="text-white font-bold line-clamp-1 text-lg">
+            <h3 className="text-white font-bold line-clamp-1 text-lg max-w-[80%]">
               {place.name}
             </h3>
             {place.priceLevel && getPriceIndicator(place.priceLevel) && (

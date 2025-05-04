@@ -68,7 +68,8 @@ const featuredPlaces = [
     name: "Oasis Centre",
     rating: 4.2,
     reviews: 8676,
-    image: "https://lh3.googleusercontent.com/gps-cs-s/AC9h4npMoVkCAyNgimsLohHz-uooMtqeUUqETW1VsG9McqcIdWMPW7znGpR8A3bUK82RDoaMXJjdvDPMCyrDRk-PzvRvcdtZo2xtCFkM8bLmj3VJ3pO77yCsc76p0HcPXAgyj8U2rDVs=w900-h900-p-k-no",
+    image:
+      "https://lh3.googleusercontent.com/gps-cs-s/AC9h4npMoVkCAyNgimsLohHz-uooMtqeUUqETW1VsG9McqcIdWMPW7znGpR8A3bUK82RDoaMXJjdvDPMCyrDRk-PzvRvcdtZo2xtCFkM8bLmj3VJ3pO77yCsc76p0HcPXAgyj8U2rDVs=w900-h900-p-k-no",
     tags: ["shopping_mall", "point_of_interest", "establishment"],
     description:
       "Went to Magique restaurant in this building. Downstairs they have Soch and Kushal’s store. Third floor they have pub. All floor they have something I didn’t explore. Very nice place , parking is avail...",
@@ -78,14 +79,15 @@ const featuredPlaces = [
     name: "Meghana Foods",
     rating: 4.3,
     reviews: 33585,
-    image: "https://lh3.googleusercontent.com/p/AF1QipMUaXQ3YNosQh8_GC_znm06KY3NbPsRwT5cTJ4K=w900-h900-p-k-no",
+    image:
+      "https://lh3.googleusercontent.com/p/AF1QipMUaXQ3YNosQh8_GC_znm06KY3NbPsRwT5cTJ4K=w900-h900-p-k-no",
     tags: [
       "indian_restaurant",
       "restaurant",
       "food",
       "point_of_interest",
-      "establishment"
-  ],
+      "establishment",
+    ],
     description:
       "Best for it's biryani, no other biryani is as good as them in entire Bangalore... It's like North is in south after eating it.",
   },
@@ -94,7 +96,8 @@ const featuredPlaces = [
     name: "Oyster, Bar & Kitchen",
     rating: 4.6,
     reviews: 7682,
-    image: "https://lh3.googleusercontent.com/p/AF1QipObpKxRUZVY_8ULx_j1Qp6sDOcjGX7ENePVUipu=w900-h900-p-k-no",
+    image:
+      "https://lh3.googleusercontent.com/p/AF1QipObpKxRUZVY_8ULx_j1Qp6sDOcjGX7ENePVUipu=w900-h900-p-k-no",
     tags: [
       "bar",
       "pub",
@@ -105,15 +108,15 @@ const featuredPlaces = [
       "restaurant",
       "food",
       "point_of_interest",
-      "establishment"
-  ],
+      "establishment",
+    ],
     description:
       "Had an amazing time at Oyster Bar & Kitchen. The ambience is very good, with a nice greenish theme. They are pet-friendly, which is a big plus for pet owners. The hygiene is top-notch, and the staff ...",
   },
 ];
 
 // Categories data
-const categories = [
+const categoriesShowcase = [
   {
     id: 1,
     name: "Cafes & Restaurants",
@@ -175,6 +178,29 @@ const scaleUp = {
   visible: { scale: 1, opacity: 1, transition: { duration: 0.5 } },
 };
 
+// Area Mapping:
+// jayanagar: 435
+// koramangala: 536
+// hsr layout: 609
+// hsr layout 5th sector: 9
+
+// Updated data saved to updated_filtered_data.json
+
+const priceLevelOptions = [
+  { value: "PRICE_LEVEL_INEXPENSIVE", label: "Budget-friendly" },
+  { value: "PRICE_LEVEL_MODERATE", label: "Mid-range" },
+  { value: "PRICE_LEVEL_EXPENSIVE", label: "High-end" },
+  { value: "PRICE_LEVEL_VERY_EXPENSIVE", label: "Luxury" },
+];
+
+const categories = [
+  { value: "all", name: "All Places"},
+  { value: "coffee", name: "Cafes" },
+  { value: "nightlife", name: "Nightlife"},
+  { value: "dining", name: "Restaurants"},
+  { value: "shopping", name: "Shopping"},
+];
+
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
@@ -183,7 +209,9 @@ export default function HomePage() {
   const [featuredRef, featuredInView] = useInView({ threshold: 0.1 });
   const [mapRef, mapInView] = useInView({ threshold: 0.1 });
   const [personalizedRef, personalizedInView] = useInView({ threshold: 0.1 });
-
+  const [selectedPriceLevel, setSelectedPriceLevel] = useState("");
+  const [category, setCategory] = useState("");
+  const [queryInput, setQueryInput] = useState("");
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <main>
@@ -297,7 +325,7 @@ export default function HomePage() {
               variants={staggerContainer}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
             >
-              {categories.map((category) => (
+              {categoriesShowcase.map((category) => (
                 <motion.div
                   key={category.id}
                   variants={itemFadeIn}
@@ -561,18 +589,23 @@ export default function HomePage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       I'm looking for
                     </label>
-                    <select className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                      <option>Restaurants & Cafes</option>
-                      <option>Bars & Nightlife</option>
-                      <option>Shopping</option>
-                      <option>Activities & Experiences</option>
-                      <option>Cultural Spots</option>
+                    <select className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    value={category}
+                      onChange={(e) => setCategory(e.target.value)}>
+                      <option value="" className="pr-[3rem]">
+                        Your Place
+                      </option>
+                      {categories.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.name}
+                        </option>
+                      ))}
                     </select>
                   </motion.div>
 
                   {/* <motion.div variants={itemFadeIn} className="flex-1">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      My vibe is
+                      My Location is
                     </label>
                     <select className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                       <option>Casual & Relaxed</option>
@@ -587,32 +620,53 @@ export default function HomePage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       My budget is
                     </label>
-                    <select className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                      <option>Budget-friendly</option>
-                      <option>Mid-range</option>
-                      <option>High-end</option>
-                      <option>Luxury</option>
+                    <select
+                      className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      value={selectedPriceLevel}
+                      onChange={(e) => setSelectedPriceLevel(e.target.value)}
+                    >
+                      <option value="" className="pr-[3rem]">
+                        Your Budget
+                      </option>
+                      {priceLevelOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
                     </select>
                   </motion.div>
-
                 </div>
 
                 <motion.div variants={itemFadeIn} className="mb-8">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Or describe what you're looking for
                   </label>
-                  <textarea
+                    <textarea
                     className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     rows={3}
                     placeholder="E.g., I'm looking for a quiet cafe with good Wi-Fi where I can work for a few hours"
-                  ></textarea>
+                    value={queryInput}
+                    onChange={(e) => setQueryInput(e.target.value)}
+                    ></textarea>
                 </motion.div>
 
                 <motion.div
                   variants={itemFadeIn}
                   className="flex justify-center"
                 >
-                  <button className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+                  <button className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+                   onClick={() => {
+                    const queryParams = [];
+                    if (queryInput !== "") {
+                      queryParams.push(`search=${encodeURIComponent(queryInput)}`);
+                      queryParams.push(`llm=yes`)
+                    }
+                    if (category !== "") queryParams.push(`category=${encodeURIComponent(category)}`);
+                    if (selectedPriceLevel !== "") queryParams.push(`priceLevel=${encodeURIComponent(selectedPriceLevel)}`);
+                    const queryString = queryParams.length > 0 ? `?${queryParams.join("&")}` : "";
+                    window.location.href = `/explore${queryString}`;
+                   }}
+                  >
                     <Compass className="w-5 h-5" />
                     Find My Perfect Places
                   </button>

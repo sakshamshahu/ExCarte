@@ -264,7 +264,10 @@ const Explore = () => {
       setActiveCategory(queryParams.get("category") || "all");
     if (queryParams.has("page"))
       setCurrentPage(Number(queryParams.get("page")) || 1);
-    // if (selectedPriceLevel) queryParams.set("priceLevel", selectedPriceLevel);
+    if (queryParams.has("priceLevel"))
+      setSelectedPriceLevel(queryParams.get("priceLevel") || "")
+    if (queryParams.has("llm"))
+      setIsLlmSearching(queryParams.get("llm") === "yes" || false)
     // Handle boolean filters
     const newAdvancedFilters: Record<string, boolean> = {};
 
@@ -288,6 +291,8 @@ const Explore = () => {
     if (searchQuery) queryParams.set("search", searchQuery);
     if (activeCategory !== "all") queryParams.set("category", activeCategory);
     if (currentPage > 1) queryParams.set("page", currentPage.toString());
+    if (selectedPriceLevel.length > 0)
+      queryParams.set("priceLevel", selectedPriceLevel);
 
     // Add boolean filters to query params
     Object.entries(advancedFilters).forEach(([key, value]) => {
@@ -303,6 +308,7 @@ const Explore = () => {
     activeCategory,
     currentPage,
     advancedFilters,
+    selectedPriceLevel,
     navigate,
     location.pathname,
   ]);
@@ -325,12 +331,13 @@ const Explore = () => {
   }, [showAdvancedSearch]);
 
   const debouncedFetchPlaces = useCallback(
-    debounce(async (query, category, page, filters) => {
+    debounce(async (query, category, page, filters, llm) => {
       setIsLoading(true);
       try {
         const params: Record<string, string> = {
           page: String(page),
           pageSize: String(PAGE_SIZE),
+          llm: llm
         };
 
         if (category !== "all") params.category = category;
@@ -367,16 +374,15 @@ const Explore = () => {
 
   // Fetch places when pagination, search or category changes
   useEffect(() => {
-    debouncedFetchPlaces(
-      searchQuery,
-      activeCategory,
-      currentPage,
-      advancedFilters
-    );
+    debouncedFetchPlaces(searchQuery, activeCategory, currentPage, {
+      ...advancedFilters,
+      priceLevel: selectedPriceLevel,
+    }, isLlmSearching);
     return () => debouncedFetchPlaces.cancel();
   }, [
     searchQuery,
     activeCategory,
+    selectedPriceLevel,
     currentPage,
     advancedFilters,
     debouncedFetchPlaces,
@@ -405,7 +411,11 @@ const Explore = () => {
 
   const handleLlmSearch = async () => {
     if (!searchQuery.trim()) return;
-
+    if(isLlmSearching) {
+      setIsLlmSearching(false);
+      setAiButtonActive(false);
+      return;
+    }
     setIsLlmSearching(true);
     setAiButtonActive(true);
 
@@ -419,7 +429,7 @@ const Explore = () => {
 
       // For now, just use the regular search
       // This will be replaced with actual LLM search results
-      debouncedFetchPlaces(searchQuery, activeCategory, 1, advancedFilters);
+      debouncedFetchPlaces(searchQuery, activeCategory, 1, advancedFilters, true);
     } catch (error) {
       console.error("Error with LLM search:", error);
     } finally {
@@ -433,9 +443,9 @@ const Explore = () => {
     setAdvancedFilters((prev) => {
       const updatedFilters = { ...prev };
       if (updatedFilters[key]) {
-      delete updatedFilters[key];
+        delete updatedFilters[key];
       } else {
-      updatedFilters[key] = true;
+        updatedFilters[key] = true;
       }
       return updatedFilters;
     });
@@ -443,6 +453,7 @@ const Explore = () => {
 
   const clearAdvancedFilters = () => {
     setAdvancedFilters({});
+    setSelectedPriceLevel("");
   };
 
   const getActiveFilterCount = () => {
@@ -473,42 +484,40 @@ const Explore = () => {
             {/* Main Search Bar */}
             <div className="flex flex-col w-full space-y-4 items-center justify-center">
               <div className="relative flex items-center justify-center w-full">
-                  <div
-                    className="relative w-full max-w-[50rem]"
-                  >
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <Search className="h-5 w-5 text-indigo-600" />
-                    </div>
-                    <input
-                      type="text"
-                      className="block w-full pl-12 pr-20 py-4 rounded-full border-0 bg-white/90 backdrop-blur-sm shadow-lg text-gray-900 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm"
-                      placeholder="Search for cafes, restaurants, or activities..."
-                      value={searchQuery}
-                      onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                      }}
-                    />
-                    {/* AI Search Button - Inside Search Bar */}
-                    <div className="absolute inset-y-0 right-0 flex gap-2 justify-center items-center pr-2">
-                    <button
-                    onClick={handleLlmSearch}
-                    disabled={isLlmSearching || !searchQuery.trim()}
-                    className={`flex items-center justify-center rounded-full text-sm font-semibold text-white shadow-sm focus-visible:outline p-2.5 focus-visible:outline-2 focus-visible:outline-offset-2 ease-in-out ${
-                      isLlmSearching || !searchQuery.trim()
-                        ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                        : aiButtonActive
-                        ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white"
-                        : "bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600"
-                    }`}
-                  >
-                    {isLlmSearching ? (
-                      <Spinner size="sm" className="" />
-                    ) : (
-                      <Sparkles className="h-5 w-5" />
-                    )}
-                  </button>
-                    </div>
+                <div className="relative w-full max-w-[50rem]">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Search className="h-5 w-5 text-indigo-600" />
                   </div>
+                  <input
+                    type="text"
+                    className="block w-full pl-12 pr-20 py-4 rounded-full border-0 bg-white/90 backdrop-blur-sm shadow-lg text-gray-900 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm"
+                    placeholder="Search for cafes, restaurants, or activities..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                    }}
+                  />
+                  {/* AI Search Button - Inside Search Bar */}
+                  <div className="absolute inset-y-0 right-0 flex gap-2 justify-center items-center pr-2">
+                    <button
+                      onClick={handleLlmSearch}
+                      disabled={!searchQuery.trim()}
+                      className={`flex items-center justify-center rounded-full text-sm font-semibold text-white shadow-sm focus-visible:outline p-2.5 focus-visible:outline-2 focus-visible:outline-offset-2 ease-in-out ${
+                        isLlmSearching || !searchQuery.trim()
+                          ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                          : aiButtonActive
+                          ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white"
+                          : "bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600"
+                      }`}
+                    >
+                      {isLlmSearching ? (
+                        <Spinner size="sm" className="" />
+                      ) : (
+                        <Sparkles className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
                 {/* Filters Button */}
                 <motion.button
                   onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
@@ -544,6 +553,34 @@ const Explore = () => {
                     {category.name}
                   </motion.button>
                 ))}
+
+                {/* Price Level Filter */}
+                <div
+                  className={`flex items-center px-2 py-2 rounded-full whitespace-nowrap transition-all duration-300 ${
+                    selectedPriceLevel !== ""
+                      ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md"
+                      : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                  }`}
+                >
+                  <select
+                    value={selectedPriceLevel}
+                    onChange={(e) => setSelectedPriceLevel(e.target.value)}
+                    className={`flex items-center rounded-full whitespace-nowrap transition-all duration-300 bg-transparent ${
+                      selectedPriceLevel !== ""
+                      ? "text-white"
+                      : "text-gray-700"
+                  }`}
+                  >
+                    <option value="" className="pr-[3rem]">
+                      Price
+                    </option>
+                    {priceLevelOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
           </div>

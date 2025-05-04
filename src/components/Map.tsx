@@ -2,16 +2,45 @@ import React, { useEffect, useRef, useState } from "react";
 import { OlaMaps } from "olamaps-web-sdk";
 import { Place } from "../types";
 import MapHoverCard from "./MapHoverCard";
+import { MapPin, Coffee, Music, Utensils, ShoppingBag } from "lucide-react";
+
+// Define the categories
+const categories = [
+  { id: "all", name: "All Places", icon: MapPin },
+  { id: "coffee", name: "Cafes", icon: Coffee },
+  { id: "nightlife", name: "Nightlife", icon: Music },
+  { id: "dining", name: "Restaurants", icon: Utensils },
+  { id: "shopping", name: "Shopping", icon: ShoppingBag },
+];
+
+// Define areas with colors
+const areaColors = {
+  "jayanagar": "#F7374F",
+  "koramangala": "#102E50",
+  "hsr layout": "#E78B48",
+  "hsr layout 5th sector": "#E78B48"
+};
+
+// Define category colors (for secondary visual differentiation)
+const categoryColors = {
+  "coffee": "#C07F00", // Brown
+  "nightlife": "#7F00FF", // Purple
+  "dining": "#336D82", // Pink
+  "shopping": "#A5158C", // Yellow
+  "all": "#FFFFFF" // White (default)
+};
 
 interface MapProps {
   places: Array<Place>;
   onPlaceSelect: (placeId: string) => void;
+  selectedCategory?: string;
 }
 
-const Map: React.FC<MapProps> = ({ places, onPlaceSelect }) => {
+const Map: React.FC<MapProps> = ({ places, onPlaceSelect, selectedCategory = "all" }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const [hoveredPlace, setHoveredPlace] = useState<Place | null>(null);
+  const [showLegend, setShowLegend] = useState(false);
   const [popupPosition, setPopupPosition] = useState<{
     x: number;
     y: number;
@@ -35,7 +64,7 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect }) => {
       style:
         "https://api.olamaps.io/tiles/vector/v1/styles/default-light-standard/style.json",
       container: mapRef.current,
-      center: [77.6214, 12.9257], //map center coordinates
+      center: [77.6214, 12.9257], // Map center coordinates
       zoom: 12,
     });
 
@@ -43,186 +72,142 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect }) => {
 
     // Wait for map to load before adding sources and layers
     myMap.on("load", () => {
-      // Prepare GeoJSON data for heatmap
-      const heatmapData = {
-        type: "FeatureCollection",
-        features: places.map((place) => ({
-          type: "Feature",
-          geometry: {
-            type: "Point",
-            coordinates: [place.longitude, place.latitude],
+      // Filter places based on selected category if needed
+      const filteredPlaces = selectedCategory === "all" 
+        ? places 
+        : places.filter(place => place.category === selectedCategory);
+
+      // Prepare GeoJSON data for each area
+      const areas = ["jayanagar", "koramangala", "hsr layout", "hsr layout 5th sector"];
+      
+      areas.forEach(area => {
+        // Filter places for this area
+        const areaPlaces = filteredPlaces.filter(place => 
+          place.area?.toLowerCase() === area.toLowerCase()
+        );
+        
+        if (areaPlaces.length === 0) return; // Skip if no places in this area
+
+        // Create GeoJSON for this area
+        const areaData = {
+          type: "FeatureCollection",
+          features: areaPlaces.map((place) => ({
+            type: "Feature",
+            geometry: {
+              type: "Point",
+              coordinates: [place.longitude, place.latitude],
+            },
+            properties: {
+              ...place,
+              areaColor: areaColors[area as keyof typeof areaColors] || "#999999",
+              categoryColor: categoryColors[place.category as keyof typeof categoryColors] || categoryColors.all
+            },
+          })),
+        };
+
+        // Source ID based on area
+        const sourceId = `places-${area.replace(/\s+/g, '-')}`;
+
+        // Add the source
+        myMap.addSource(sourceId, {
+          type: "geojson",
+          data: areaData,
+        });
+
+        // Add points layer for this area
+        myMap.addLayer({
+          id: `${sourceId}-points`,
+          type: "circle",
+          source: sourceId,
+          paint: {
+            "circle-radius": ["interpolate", ["linear"], ["zoom"], 7, 4, 16, 12],
+            "circle-color": ["get", "areaColor"],
+            "circle-stroke-color": ["get", "categoryColor"],
+            "circle-stroke-width": 2,
+            "circle-opacity": 1,
           },
-          properties: {
-            ...place,
-          },
-        })),
-      };
+        });
 
-      // Add the source
-      myMap.addSource("places-heatmap", {
-        type: "geojson",
-        data: heatmapData,
-      });
+        // Add click events to points
+        myMap.on("click", `${sourceId}-points`, (e: any) => {
+          if (e.features && e.features.length > 0) {
+            const feature = e.features[0];
+            const placeId = feature.properties.id;
 
-      // Add heatmap layer
-      myMap.addLayer({
-        id: "places-heatmap-layer",
-        type: "heatmap",
-        source: "places-heatmap",
-        paint: {
-          // Heatmap weight based on intensity
-          "heatmap-weight": [
-            "interpolate",
-            ["linear"],
-            ["get", "intensity"],
-            0,
-            0,
-            6,
-            1,
-          ],
-          // Increase heatmap intensity based on zoom level
-          "heatmap-intensity": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            0,
-            1,
-            9,
-            3,
-          ],
-          // Color ramp for heatmap
-          "heatmap-color": [
-            "interpolate",
-            ["linear"],
-            ["heatmap-density"],
-            0,
-            "rgba(33,102,172,0)",
-            0.2,
-            "rgb(103,169,207)",
-            0.4,
-            "rgb(209,229,240)",
-            0.6,
-            "rgb(253,219,199)",
-            0.8,
-            "rgb(178,24,43)",
-            1,
-            "rgb(178,24,43)",
-          ],
-          // Adjust heatmap radius by zoom level
-          "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 0, 2, 9, 20],
-          // Decrease opacity by zoom level
-          "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 7, 1, 9, 0],
-        },
-      });
-
-      // Add individual point markers
-      myMap.addLayer({
-        id: "places-points",
-        type: "circle",
-        source: "places-heatmap",
-        minzoom: 7,
-        paint: {
-          "circle-radius": ["interpolate", ["linear"], ["zoom"], 7, 4, 16, 12],
-          "circle-color": [
-            "interpolate",
-            ["linear"],
-            ["get", "intensity"],
-            1,
-            "rgba(33,102,172,0)",
-            2,
-            "rgb(103,169,207)",
-            3,
-            "rgb(209,229,240)",
-            4,
-            "rgb(253,219,199)",
-            5,
-            "rgb(239,138,98)",
-            6,
-            "rgb(178,24,43)",
-          ],
-          "circle-stroke-color": "white",
-          "circle-stroke-width": 1,
-          "circle-opacity": ["interpolate", ["linear"], ["zoom"], 7, 0, 8, 1],
-        },
-      });
-
-      // Add click events to points
-      myMap.on("click", "places-points", (e: any) => {
-        if (e.features && e.features.length > 0) {
-          const feature = e.features[0];
-          const placeId = feature.properties.id;
-
-          if (placeId) {
-            onPlaceSelect(placeId);
+            if (placeId) {
+              onPlaceSelect(placeId);
+            }
           }
-        }
-      });
+        });
 
-      // Change the cursor to a pointer when hovering over points
-      myMap.on("mouseenter", "places-points", (e: any) => {
-        myMap.getCanvas().style.cursor = "pointer";
+        // Change the cursor to a pointer when hovering over points
+        myMap.on("mouseenter", `${sourceId}-points`, (e: any) => {
+          myMap.getCanvas().style.cursor = "pointer";
 
-        if (e.features && e.features.length > 0) {
-          const feature = e.features[0];
-          const properties = feature.properties;
+          if (e.features && e.features.length > 0) {
+            const feature = e.features[0];
+            const properties = feature.properties;
 
-          // Set hovered place and popup position
-          const place = {
-            id: properties.id,
-            name: properties.name,
-            description: properties.description || "",
-            category: properties.category || "",
-            average_rating: properties.average_rating || 0,
-            google_average_rating: properties.google_average_rating || 0,
-            total_reviews: properties.total_reviews || 0,
-            google_total_reviews: properties.google_total_reviews || 0,
-            latitude: feature.geometry.coordinates[1],
-            longitude: feature.geometry.coordinates[0],
-            address: properties.address || "",
-            images: properties.images ? JSON.parse(properties.images) : [],
-            tags: properties.tags ? JSON.parse(properties.tags) : [],
-            serves_coffee:
-              properties.serves_coffee === "true" ||
-              properties.serves_coffee === true,
-            acceptsCreditCards:
-              properties.acceptsCreditCards === "true" ||
-              properties.acceptsCreditCards === true,
-            priceLevel: properties.priceLevel || "",
-            opening_hours: properties.opening_hours
-              ? JSON.parse(properties.opening_hours)
-              : [],
-          };
+            // Set hovered place and popup position
+            const place = {
+              id: properties.id,
+              name: properties.name,
+              description: properties.description || "",
+              category: properties.category || "",
+              area: properties.area || "",
+              average_rating: properties.average_rating || 0,
+              google_average_rating: properties.google_average_rating || 0,
+              total_reviews: properties.total_reviews || 0,
+              google_total_reviews: properties.google_total_reviews || 0,
+              latitude: feature.geometry.coordinates[1],
+              longitude: feature.geometry.coordinates[0],
+              address: properties.address || "",
+              images: properties.images ? JSON.parse(properties.images) : [],
+              tags: properties.tags ? JSON.parse(properties.tags) : [],
+              serves_coffee:
+                properties.serves_coffee === "true" ||
+                properties.serves_coffee === true,
+              acceptsCreditCards:
+                properties.acceptsCreditCards === "true" ||
+                properties.acceptsCreditCards === true,
+              priceLevel: properties.priceLevel || "",
+              opening_hours: properties.opening_hours
+                ? JSON.parse(properties.opening_hours)
+                : [],
+            };
 
-          // Clear any existing timeout
-          if (hoverTimeoutRef.current !== null) {
-            window.clearTimeout(hoverTimeoutRef.current);
-            hoverTimeoutRef.current = null;
+            // Clear any existing timeout
+            if (hoverTimeoutRef.current !== null) {
+              window.clearTimeout(hoverTimeoutRef.current);
+              hoverTimeoutRef.current = null;
+            }
+
+            // Set hovered place and popup position
+            setHoveredPlace(place);
+
+            const canvasRect = myMap.getCanvasContainer().getBoundingClientRect();
+            const mouseEvent = e.originalEvent;
+            
+            setPopupPosition({
+              x: mouseEvent.clientX - canvasRect.left,
+              y: mouseEvent.clientY - canvasRect.top,
+            });
           }
+        });
 
-          // Set hovered place and popup position
-          setHoveredPlace(place);
+        myMap.on("mouseleave", `${sourceId}-points`, () => {
+          myMap.getCanvas().style.cursor = "";
 
-          const canvasRect = myMap.getCanvasContainer().getBoundingClientRect();
-          const mouseEvent = e.originalEvent;
-          setPopupPosition({
-            x: mouseEvent.clientX - canvasRect.left,
-            y: mouseEvent.clientY - canvasRect.top,
-          });
-        }
-      });
-
-      myMap.on("mouseleave", "places-points", () => {
-        myMap.getCanvas().style.cursor = "";
-
-        // Set a short timeout before closing the popup
-        // This gives time for the mouse to move to the popup if that's where it's heading
-        hoverTimeoutRef.current = window.setTimeout(() => {
-          // Check if the mouse is over the popup before closing it
-          if (popupRef.current && !isMouseOverElement(popupRef.current)) {
-            setHoveredPlace(null);
-            setPopupPosition(null);
-          }
-        }, 50);
+          // Set a short timeout before closing the popup
+          // This gives time for the mouse to move to the popup if that's where it's heading
+          hoverTimeoutRef.current = window.setTimeout(() => {
+            // Check if the mouse is over the popup before closing it
+            if (popupRef.current && !isMouseOverElement(popupRef.current)) {
+              setHoveredPlace(null);
+              setPopupPosition(null);
+            }
+          }, 50);
+        });
       });
     });
 
@@ -236,7 +221,7 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect }) => {
         window.clearTimeout(hoverTimeoutRef.current);
       }
     };
-  }, [places, onPlaceSelect]);
+  }, [places, onPlaceSelect, selectedCategory]);
 
   // Helper function to check if mouse is over an element
   const isMouseOverElement = (element: HTMLElement): boolean => {
@@ -288,66 +273,182 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect }) => {
 
   // Measure card size after render
   useEffect(() => {
-    if (popupRef.current && cardMeasureRef.current) {
+    if (hoveredPlace && cardMeasureRef.current) {
       const rect = cardMeasureRef.current.getBoundingClientRect();
       setCardSize({ width: rect.width, height: rect.height });
     }
   }, [hoveredPlace]);
 
-  // Define a type for our constrained position
-  type ConstrainedPosition = {
-    x: number;
-    y: number;
-    transform: string;
-  };
-
-  // Calculate constrained position to keep card in viewport
-  const getConstrainedPosition = (): ConstrainedPosition | null => {
-    if (!popupPosition || !mapRef.current) return null;
+  // Calculate the optimal position for the hover card
+  const getOptimalPosition = () => {
+    if (!popupPosition || !mapRef.current || !cardSize.width || !cardSize.height) return null;
 
     const mapRect = mapRef.current.getBoundingClientRect();
-    const padding = 10; // Padding from the edges of the map
-
-    // Default position (centered above the point)
-    let transformStyle = "translate(-50%, -100%)";
-    let left = popupPosition.x;
-    let top = popupPosition.y;
-
-    // Check if the card would go beyond the top of the map
-    if (popupPosition.y - cardSize.height < mapRect.top + padding) {
-      // Position below the point instead of above
-      top = popupPosition.y + 10; // Add some space below the point
-      transformStyle = "translate(-50%, 0)";
+    const padding = 10; // Padding from map edges
+    
+    // Default position (pointer coordinates)
+    let x = popupPosition.x;
+    let y = popupPosition.y;
+    
+    // Initial placement strategy - prefer above and centered on point
+    let placement = 'top'; // can be: top, bottom, left, right
+    
+    // Calculate available space in each direction
+    const spaceAbove = y;
+    const spaceBelow = mapRect.height - y;
+    const spaceLeft = x;
+    const spaceRight = mapRect.width - x;
+    
+    // Check if card fits above the point
+    if (spaceAbove >= cardSize.height + padding) {
+      placement = 'top';
+      y -= padding; // Add some space between point and card
     }
-
-    // Check if the card would go beyond the left edge of the map
-    if (popupPosition.x - cardSize.width / 2 < mapRect.left + padding) {
-      // Align the left edge with padding
-      left = mapRect.left + padding + cardSize.width / 2;
+    // If not above, check if it fits below
+    else if (spaceBelow >= cardSize.height + padding) {
+      placement = 'bottom';
+      y += padding; // Add some space between point and card
     }
-
-    // Check if the card would go beyond the right edge of the map
-    if (popupPosition.x + cardSize.width / 2 > mapRect.right - padding) {
-      // Align the right edge with padding
-      left = mapRect.right - padding - cardSize.width / 2;
+    // If neither above nor below works well, try left or right
+    else if (spaceLeft > spaceRight && spaceLeft >= cardSize.width + padding) {
+      placement = 'left';
+      x -= padding; // Add some space between point and card
     }
-
-    // Check if the card would go beyond the bottom of the map
-    if (popupPosition.y + cardSize.height > mapRect.bottom - padding) {
-      // Adjust the position to fit within the bottom edge
-      top = mapRect.bottom - padding - cardSize.height;
-      transformStyle = "translate(-50%, 0)";
+    else if (spaceRight >= cardSize.width + padding) {
+      placement = 'right';
+      x += padding; // Add some space between point and card
     }
-
-    return { x: left, y: top, transform: transformStyle };
+    // If all else fails, place it where there's most space
+    else {
+      const spaces = [
+        { dir: 'top', space: spaceAbove },
+        { dir: 'bottom', space: spaceBelow },
+        { dir: 'left', space: spaceLeft },
+        { dir: 'right', space: spaceRight }
+      ];
+      
+      const bestPlacement = spaces.sort((a, b) => b.space - a.space)[0];
+      placement = bestPlacement.dir;
+      
+      // Adjust position based on best placement
+      if (placement === 'top') y -= padding;
+      else if (placement === 'bottom') y += padding;
+      else if (placement === 'left') x -= padding;
+      else if (placement === 'right') x += padding;
+    }
+    
+    // Apply CSS transform based on placement
+    let transform = '';
+    switch (placement) {
+      case 'top':
+        transform = 'translate(-50%, -100%)';
+        break;
+      case 'bottom':
+        transform = 'translate(-50%, 0)';
+        break;
+      case 'left':
+        transform = 'translate(-100%, -50%)';
+        break;
+      case 'right':
+        transform = 'translate(0, -50%)';
+        break;
+    }
+    
+    // Ensure the card stays within map boundaries
+    // For left and right positions, ensure vertical bounds
+    if (placement === 'left' || placement === 'right') {
+      // Adjust if too close to top
+      if (y - cardSize.height / 2 < padding) {
+        y = cardSize.height / 2 + padding;
+      }
+      // Adjust if too close to bottom
+      else if (y + cardSize.height / 2 > mapRect.height - padding) {
+        y = mapRect.height - cardSize.height / 2 - padding;
+      }
+    }
+    
+    // For top and bottom positions, ensure horizontal bounds
+    if (placement === 'top' || placement === 'bottom') {
+      // Adjust if too close to left
+      if (x - cardSize.width / 2 < padding) {
+        x = cardSize.width / 2 + padding;
+      }
+      // Adjust if too close to right
+      else if (x + cardSize.width / 2 > mapRect.width - padding) {
+        x = mapRect.width - cardSize.width / 2 - padding;
+      }
+    }
+    
+    return { x, y, transform, placement };
   };
 
-  const constrainedPosition = getConstrainedPosition();
+  const optimalPosition = getOptimalPosition();
+
+  // Render the map legend
+  const renderLegend = () => {
+    return (
+      <div onClick={() => setShowLegend(false)} className="absolute bottom-4 left-4 bg-white p-3 cursor-pointer shadow-md z-20 text-xs rounded-lg">
+        <h3 className="font-semibold mb-2">Map Legend</h3>
+        
+        <div className="mb-2">
+          <h4 className="font-medium mb-1">Areas:</h4>
+          <div className="grid grid-cols-2 gap-x-4">
+            {Object.entries(areaColors).map(([area, color], index) => {
+              // Only display HSR Layout once since both use the same color
+              if (area === "hsr layout 5th sector") return null;
+              
+              // Rename HSR Layout to include both areas
+              const displayName = area === "hsr layout" ? "HSR Layout" : area.charAt(0).toUpperCase() + area.slice(1);
+              
+              return (
+                <div key={index} className="flex items-center mb-1">
+                  <div
+                    className="w-4 h-4 rounded-full mr-1"
+                    style={{ backgroundColor: color }}
+                  ></div>
+                  <span>{displayName}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        
+        <div>
+          <h4 className="font-medium mb-1">Categories:</h4>
+          <div className="grid grid-cols-2 gap-x-4">
+            {categories.filter(cat => cat.id !== "all").map((category, index) => (
+              <div key={index} className="flex items-center mb-1">
+                <div
+                  className="w-4 h-4 rounded-full mr-1 border-2"
+                  style={{ borderColor: categoryColors[category.id as keyof typeof categoryColors] }}
+                ></div>
+                <span>{category.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <div className="relative w-full h-[400px] rounded-lg shadow-lg">
+    <div ref={mapRef} className="relative w-full h-[400px] rounded-lg shadow-lg">
       {/* Map Container */}
-      <div ref={mapRef} className="absolute inset-0" />
+      <div className="absolute inset-0" />
+
+      {/* Info Button to Toggle Legend */}
+      {!showLegend && (
+        <button
+          onClick={() => setShowLegend((prev) => !prev)}
+          className="absolute bottom-4 left-4 w-8 h-8 bg-white border-2 border-black/80 rounded-full shadow-md flex items-center justify-center z-50 hover:scale-105 transition-transform duration-200"
+          aria-label="Toggle Legend"
+        >
+          <span className="text-lg font-bold">i</span>
+        </button>
+      )}
+        
+      {/* Map Legend */}
+      {showLegend && renderLegend()}
 
       {/* Hidden div to measure card size */}
       {hoveredPlace && (
@@ -361,14 +462,14 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect }) => {
       )}
 
       {/* Custom Popup */}
-      {hoveredPlace && popupPosition && constrainedPosition && (
+      {hoveredPlace && popupPosition && optimalPosition && (
         <div
           ref={popupRef}
-          className="absolute text-sm mb-2 z-50"
+          className="absolute text-sm z-10"
           style={{
-            left: constrainedPosition.x,
-            top: constrainedPosition.y,
-            transform: constrainedPosition.transform,
+            left: optimalPosition.x,
+            top: optimalPosition.y,
+            transform: optimalPosition.transform,
             pointerEvents: "auto", // Allow interaction with the card
           }}
           onMouseEnter={handlePopupMouseEnter}
