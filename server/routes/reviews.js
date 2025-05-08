@@ -89,23 +89,6 @@ router.post("/", async (req, res) => {
     });
 
     res.json(review);
-    if (PrismaClient.useLocalhost) {
-      console.info("Started creating review in Supabase");
-      // Create review in Supabase
-      const supabaseResult = await SupabasePrismaClient.reviews.create({
-        data: {
-          user_id: userId,
-          place_id: placeId,
-          rating,
-          comment,
-        },
-        include: {
-          user: true,
-          place: true,
-        },
-      });
-      console.log("Review created in Supabase:", supabaseResult);
-    }
   } catch (error) {
     console.error("Error creating review:", error);
     res
@@ -148,37 +131,6 @@ router.put("/:userId/:placeId", async (req, res) => {
     res.json(review);
 
     // Perform Supabase operations as a shadow process
-    if (PrismaClient.useLocalhost) {
-      setImmediate(async () => {
-        try {
-          console.info("Started updating review in Supabase");
-
-          // Update review in Supabase
-          await SupabasePrismaClient.reviews.update({
-            where: { user_id_place_id: { user_id: userId, place_id: placeId } },
-            data: {
-              rating,
-              comment,
-              updated_at: new Date(),
-            },
-          });
-
-          // Update place average rating in Supabase
-          await SupabasePrismaClient.places.update({
-            where: { id: review.place_id },
-            data: {
-              average_rating: {
-                set: await calculateAverageRating(review.place_id),
-              },
-            },
-          });
-
-          console.log("Review updated in Supabase");
-        } catch (error) {
-          console.error("Error updating review in Supabase:", error);
-        }
-      });
-    }
   } catch (error) {
     console.error("Error updating review:", error);
     res.status(500).json({ error: "Failed to update review" });
@@ -218,35 +170,6 @@ router.delete("/:userId/:placeId", async (req, res) => {
     });
 
     res.json({ message: "Review deleted successfully" });
-    if (PrismaClient.useLocalhost) {
-      // Perform Supabase operations as a shadow process
-      setImmediate(async () => {
-        try {
-          console.info("Started deleting review from Supabase");
-          // Delete review from Supabase
-          await SupabasePrismaClient.reviews.delete({
-            where: { user_id_place_id: { user_id: userId, place_id: placeId } },
-          });
-
-          // Update place average rating and total reviews in Supabase
-          await SupabasePrismaClient.places.update({
-            where: { id: placeId },
-            data: {
-              average_rating: {
-                set: await calculateAverageRating(placeId),
-              },
-              total_reviews: {
-                decrement: 1,
-              },
-            },
-          });
-
-          console.log("Review deleted from Supabase");
-        } catch (error) {
-          console.error("Error deleting review from Supabase:", error);
-        }
-      });
-    }
   } catch (error) {
     console.error("Error deleting review:", error);
     res.status(500).json({ error: "Failed to delete review" });
