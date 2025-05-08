@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { OlaMaps } from "olamaps-web-sdk";
 import { Place } from "../types";
 import MapHoverCard from "./MapHoverCard";
-import { MapPin, Coffee, Music, Utensils, ShoppingBag } from "lucide-react";
+import { MapPin, Coffee, Music, Utensils, ShoppingBag, TentIcon, Bike, Soup } from "lucide-react";
 
 // Define the categories
 const categories = [
@@ -11,6 +11,10 @@ const categories = [
   { id: "nightlife", name: "Nightlife", icon: Music },
   { id: "dining", name: "Restaurants", icon: Utensils },
   { id: "shopping", name: "Shopping", icon: ShoppingBag },
+  { id: "entertainment", name: "Entertainment", icon: Music },
+  { id: "culture", name: "Culture", icon: TentIcon },
+  { id: "outdoor", name: "Outdoor", icon: Bike },
+  { id: "wellness", name: "Wellness", icon: Soup },
 ];
 
 // Define areas with colors
@@ -27,6 +31,10 @@ const categoryColors = {
   nightlife: "#7F00FF", // Purple
   dining: "#336D82", // Pink
   shopping: "#A5158C", // Yellow
+  entertainment: "#00FF7F", // Green
+  culture: "#FF00FF", // Magenta
+  outdoor: "#FF0000", // Red
+  wellness: "#00FFFF", // Cyan
   all: "#FFFFFF", // White (default)
 };
 
@@ -88,7 +96,6 @@ const Map: React.FC<MapProps> = ({
           (layer.id && layer.id.includes("label"))
         ) {
           // Hide the text by setting visibility to none
-        console.log("layer", layer);
         if(layer.id === "poi") 
           myMap.setLayoutProperty(layer.id, "visibility", "none");
         }
