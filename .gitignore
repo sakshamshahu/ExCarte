@@ -33,3 +33,5 @@ scrapy/split_csv_output
 # data
 ai/data/raw/blrdatapoints.csv
 ai/data/processed/filtered_data.csv
+
+__pycache__
