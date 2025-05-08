@@ -18,11 +18,12 @@ const PlaceDetails: React.FC<PlaceDetailsProps> = ({ place, onClose }) => {
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
     longitude: number;
-  } | null>(null);
+  } | null>({ latitude: 12.917789, longitude: 77.634758 });
   const getLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
         const { latitude, longitude } = position.coords;
+        console.log("User Location:", { latitude, longitude });
         setUserLocation({ latitude, longitude });
       });
     } else {
