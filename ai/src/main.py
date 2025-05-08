@@ -5,12 +5,22 @@ from pydantic import RootModel, BaseModel
 import json
 import os
 import logging
+from fastapi.middleware.cors import CORSMiddleware
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Add your frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
 OLLAMA_MODEL = "gemma3-custom:latest"
@@ -19,7 +29,7 @@ DATA_DIR = "ai/places"
 # Configure httpx client with timeout
 TIMEOUT = httpx.Timeout(30.0, connect=5.0)
 
-async def query_llm_for_single_place(place: Dict[str, Any], user_prompt: str) -> Dict[str, str]:
+async def query_llm_for_single_place(place: Dict[str, Any], search: str) -> Dict[str, str]:
     """Send a single place to LLM and get result."""
     system_prompt = """You are an AI assistant that evaluates a single place based on a user's query. The place is described as a JSON object, and your job is to return whether it matches the query strictly.
 
@@ -51,7 +61,7 @@ Response:
 
     prompt = f"""System: {system_prompt}
 
-User query: {user_prompt}
+User query: {search}
 
 Place to evaluate:
 {json.dumps(place, indent=2)}
@@ -111,21 +121,35 @@ Please evaluate this place and return a JSON object with id and answer fields.""
         logger.error(f"Unexpected error in LLM query: {str(e)}", exc_info=True)
         raise ValueError(f"Failed to query LLM: {str(e)}")
 
-async def query_llm_for_places(places: List[Dict[str, Any]], user_prompt: str) -> List[Dict[str, str]]:
+async def query_llm_for_places(places: List[Dict[str, Any]], search: str) -> List[Dict[str, str]]:
     """Send places one by one to LLM and get results."""
     results = []
+    yes_count = 0
+    MAX_YES_MATCHES = 10
+
     for place in places:
         try:
-            result = await query_llm_for_single_place(place, user_prompt)
+            result = await query_llm_for_single_place(place, search)
             results.append(result)
+            
+            # Count "Yes" responses
+            if result.get("answer", "").lower() == "yes":
+                yes_count += 1
+                logger.info(f"Found match #{yes_count}: {place.get('name', 'Unknown')}")
+                
+                if yes_count >= MAX_YES_MATCHES:
+                    logger.info(f"Reached maximum of {MAX_YES_MATCHES} matches, stopping evaluation")
+                    break
+                    
         except Exception as e:
             logger.error(f"Error evaluating place {place.get('id', 'unknown')}: {str(e)}")
-            # Add a default "No" response for failed evaluations
             results.append({"id": place["id"], "answer": "No"})
+    
+    logger.info(f"Finished evaluation with {yes_count} matches out of {len(results)} places evaluated")
     return results
 
 @app.get("/query_places")
-async def query_places(area: str = Query(...), user_prompt: str = Query(...)):
+async def query_places(area: str = Query(...), search: str = Query(...)):
     """API endpoint to query places based on user input."""
     try:
         file_path = os.path.join(DATA_DIR, f"{area.lower()}.json")
@@ -154,7 +178,7 @@ async def query_places(area: str = Query(...), user_prompt: str = Query(...)):
             raise HTTPException(status_code=500, detail=str(e))
 
         try:
-            llm_results = await query_llm_for_places(places, user_prompt)
+            llm_results = await query_llm_for_places(places, search)
             logger.info(f"Received {len(llm_results)} results from LLM")
         except Exception as e:
             logger.error(f"Error querying LLM: {str(e)}")
