@@ -1,4 +1,5 @@
 const API_URL = import.meta.env.VITE_API_URL;
+const LLM_URL = import.meta.env.VITE_ML_API_ENDPOINT;
 
 export const api = {
   auth: {
@@ -76,6 +77,13 @@ export const api = {
       const searchParams = new URLSearchParams(params);
       const response = await fetch(`${API_URL}/places/pages?${searchParams}`);
       if (!response.ok) throw new Error('Failed to fetch pages');
+      return response.json();
+    },
+
+    getLLMResults: async (params = {}) => {
+      const searchParams = new URLSearchParams(params);
+      const response = await fetch(`${LLM_URL}?${searchParams}`);
+      if (!response.ok) throw new Error('Failed to fetch LLM results');
       return response.json();
     }
   },

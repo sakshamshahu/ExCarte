@@ -250,77 +250,11 @@ const Explore = () => {
   const [selectedPriceLevel, setSelectedPriceLevel] = useState("");
   const [selectedArea, setSelectedArea] = useState("all");
 
-  const fetchPlacesByIds = async () => {
+  const fetchPlacesByIds = async (placeIds: string[]) => {
     setIsLoading(true);
     try {
       setPlaces([]); // Clear previous places
-      setPlaceIds([
-        "ChIJ2YexLWgVrjsRC35nrXDk9eo",
-        "ChIJT4aAYVwUrjsRJ3SsIE4DhUc",
-        "ChIJOc6K1G4VrjsR4Gv6vNotBOA",
-        "ChIJw9bZaboVrjsREHIG6NvnmHI",
-        "ChIJ0Qtan2kVrjsRAx29jZOQ-s0",
-        "ChIJsQ6_op8VrjsRVFK_RrBJsBA",
-        "ChIJ4U3TdFgUrjsR9zj2nGQW97c",
-        "ChIJt0TQG-kVrjsRdhhvQ8jcfWU",
-        "ChIJGzjadqcVrjsRChTAxBu2SFk",
-        "ChIJGaLo-dwVrjsRxjGx4jbrlAU",
-        "ChIJ_yHmVJ4VrjsRuKQ9JLCBcyU",
-        "ChIJG1ctHMsVrjsRhS0i4_R_rQg",
-        "ChIJpZQxg2cUrjsR1Oz7J8SoNCg",
-        "ChIJHc9stfcVrjsRR8OMkz0gz1M",
-        "ChIJj_p0CaQVrjsRKQwchm_wZww",
-        "ChIJh9IVRJgVrjsR5vH2w57E73k",
-        "ChIJNezjVcsVrjsR_Wo-flsTAgU",
-        "ChIJIzq8458VrjsRwDCUzUe3FXs",
-        "ChIJrbqKEi0SrjsR9Y8hMo0CN-Q",
-        "ChIJl86rfeYVrjsRuIpYX0yn8i0",
-        "ChIJi4Eq6O0VrjsR_nGYWnR0CJc",
-        "ChIJ9Wl0S2AUrjsRNI2PQmBxT_Y",
-        "ChIJZ7XoJI4UrjsRIv1KZSTR3zk",
-        "ChIJg2D20lcVrjsRXlJQo-f5bIM",
-        "ChIJkyJ2RkYVrjsR5U4S1wCtpNc",
-        "ChIJsQ6_op8VrjsRVFK_RrBJsBA",
-        "ChIJvX83PYIVrjsRHOePhH1wQMQ",
-        "ChIJudkYZoAUrjsRmmy2PLmdfRc",
-        "ChIJO0aEV5UVrjsRmPfvuHB7iRc",
-        "ChIJiWJVF0MUrjsR_gnen4MZ0Ko",
-        "ChIJG5mr_6EVrjsR5Eqy-CcQZKM",
-        "ChIJpa_p278VrjsRIWQbbJPde9w",
-        "ChIJ_0uDcFQVrjsR1SRPZCyTm9I",
-        "ChIJTWIoX5sUrjsRoQdj4Zp9ND0",
-        "ChIJY6VXOAgVrjsR_qfHscpb0kw",
-        "ChIJ3375UZ8VrjsRDGbu4tLbCMc",
-        "ChIJ6aVkH7kVrjsR1ERMzcCenW4",
-        "ChIJB_0lAoUUrjsRi5BHqyNkYrg",
-        "ChIJz5t-3gAVrjsR4fNUG57sqIo",
-        "ChIJxalH0JEUrjsR9ZZLrQDrQdg",
-        "ChIJVWs9jtIVrjsRREDZI3Pebms",
-        "ChIJK8iuh5gVrjsRTgYhtCePiGI",
-        "ChIJqeXCpgkVrjsRyH-qf6MKI8Y",
-        "ChIJ7yZK8l4UrjsRjaS0t99fbLM",
-        "ChIJHZKlprYVrjsRbIwAmhCY8zQ",
-        "ChIJ68UGGY4UrjsRLMa3nVeRxhA",
-        "ChIJwetgdI0VrjsRANtd-kSq4xI",
-        "ChIJ14HPCUMUrjsRfsB9eJurSs0",
-        "ChIJycGsy0QUrjsRtWfAiGPKOfI",
-        "ChIJuSM_VJ8VrjsRkZLIeXscDbc",
-        "ChIJvTCqi-8VrjsRSCE63vQnqrI",
-        "ChIJ4VKbRXkVrjsRlhin_6hGdOY",
-        "ChIJXUk5LUwUrjsRCAEMUIh4vko",
-        "ChIJDRTh6lEUrjsRJhhn5I6lIQ4",
-        "ChIJj3Kgj58VrjsRKc_1mrgLqYw",
-        "ChIJp71ai70VrjsRjHxSa1clgX0",
-        "ChIJFwy48mkVrjsRM--pbGSF46c",
-        "ChIJcS8MQ54VrjsRBp4ieVtuDfw",
-        "ChIJ98k_jC0VrjsRsbFedlCLQWU",
-        "ChIJm_AltE4VrjsRuIwjkiwOLPs",
-        "ChIJ60pe-kcUrjsRuQgQew8ACxE",
-        "ChIJBWVD6zwVrjsR_vEHhf9nHmI",
-        "ChIJyYV_bEQUrjsRNM_cm5bnuEM",
-        "ChIJHb1i86MVrjsR93Kcl-5s7r8",
-        "ChIJxZDi6aEVrjsRXGxR3DWeTdw",
-      ]);
+      setPlaceIds(placeIds);
     } catch (error) {
       console.error("Error fetching places:", error);
     } finally {
@@ -534,10 +468,12 @@ const Explore = () => {
       });
       return;
     }
+    setIsLoading(true);
 
     if (isLlmSearching) {
       setIsLlmSearching(false);
       setAiButtonActive(false);
+      setIsLoading(false);
       return;
     }
     setIsLlmSearching(true);
@@ -549,8 +485,15 @@ const Explore = () => {
       console.log("LLM search for:", searchQuery);
 
       // Simulate LLM search delay
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      fetchPlacesByIds();
+      const llmResults = await api.places.getLLMResults({
+        search: searchQuery,
+        area: selectedArea,
+      });
+      console.log("LLM results:", llmResults);
+      const placeIds = llmResults
+        .filter((result: { decision: string }) => result.decision === "Yes")
+        .map((result: { id: string }) => result.id);
+      fetchPlacesByIds(placeIds);
       clearAdvancedFilters(false);
       setActiveCategory("all");
       // For now, just use the regular search
@@ -567,6 +510,7 @@ const Explore = () => {
       console.error("Error with LLM search:", error);
     } finally {
       setIsLlmSearching(false);
+      setIsLoading(false);
       // Keep the button active to show it was used
       setTimeout(() => setAiButtonActive(false), 2000);
     }
