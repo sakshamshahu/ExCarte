@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { useStore } from "../store";
@@ -26,7 +26,7 @@ const PlaceReviews = () => {
   const [userReview, setUserReview] = useState<any>(null);
   const [isEditingReview, setIsEditingReview] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>({ latitude: 12.917789, longitude: 77.634758 });
   
   const getLocation = () => {
     if (navigator.geolocation) {

@@ -379,12 +379,14 @@ router.get("/", async (req, res) => {
       page = 1, // Default to page 1
       pageSize = 30, // Default 30 places per page
       priceLevel,
+      placeIds,
       area,
       ...booleanFilters
     } = req.query;
 
     const skip = (page - 1) * pageSize; // Calculate offset for pagination
 
+    const placeIdParse = placeIds ? placeIds.split(",") : null;
     let whereClause = {};
 
     if (category) {
@@ -393,14 +395,21 @@ router.get("/", async (req, res) => {
         category,
       };
     }
-
-    if (search) {
+    console.log("placeIds", placeIdParse);
+    if (search && !placeIdParse) {
       whereClause = {
         ...whereClause,
         OR: [
           { name: { contains: search, mode: "insensitive" } },
           { description: { contains: search, mode: "insensitive" } },
         ],
+      };
+    } else if (placeIdParse && placeIdParse.length > 0) {
+      whereClause = {
+        ...whereClause,
+        id: {
+          in: placeIdParse,
+        },
       };
     }
 
