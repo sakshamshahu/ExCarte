@@ -42,7 +42,6 @@ export const amenityGroups: AmenityGroups = {
   dining: [
     { key: "dine_in", icon: <Utensils className="h-4 w-4" />, label: "Dine-in" },
     { key: "take_out", icon: <ShoppingBag className="h-4 w-4" />, label: "Take-out" },
-    { key: "delivery", icon: <Truck className="h-4 w-4" />, label: "Delivery" },
     { key: "reservable", icon: <Calendar className="h-4 w-4" />, label: "Reservable" },
   ],
   serves: [
@@ -58,6 +57,7 @@ export const amenityGroups: AmenityGroups = {
     { key: "serves_cocktails", icon: <Martini className="h-4 w-4" />, label: "Cocktails" },
   ],
   features: [
+    { key: "delivery", icon: <Truck className="h-4 w-4" />, label: "Delivery" },
     { key: "outdoor_seating", icon: <Users className="h-4 w-4" />, label: "Outdoor Seating" },
     { key: "good_for_children", icon: <Baby className="h-4 w-4" />, label: "Kid-friendly" },
     { key: "menu_for_children", icon: <Baby className="h-4 w-4" />, label: "Kids Menu" },

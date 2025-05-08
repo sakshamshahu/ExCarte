@@ -15,19 +15,19 @@ const categories = [
 
 // Define areas with colors
 const areaColors = {
-  "jayanagar": "#F7374F",
-  "koramangala": "#102E50",
+  jayanagar: "#F7374F",
+  koramangala: "#102E50",
   "hsr layout": "#E78B48",
-  "hsr layout 5th sector": "#E78B48"
+  "hsr layout 5th sector": "#E78B48",
 };
 
 // Define category colors (for secondary visual differentiation)
 const categoryColors = {
-  "coffee": "#C07F00", // Brown
-  "nightlife": "#7F00FF", // Purple
-  "dining": "#336D82", // Pink
-  "shopping": "#A5158C", // Yellow
-  "all": "#FFFFFF" // White (default)
+  coffee: "#C07F00", // Brown
+  nightlife: "#7F00FF", // Purple
+  dining: "#336D82", // Pink
+  shopping: "#A5158C", // Yellow
+  all: "#FFFFFF", // White (default)
 };
 
 interface MapProps {
@@ -36,7 +36,11 @@ interface MapProps {
   selectedCategory?: string;
 }
 
-const Map: React.FC<MapProps> = ({ places, onPlaceSelect, selectedCategory = "all" }) => {
+const Map: React.FC<MapProps> = ({
+  places,
+  onPlaceSelect,
+  selectedCategory = "all",
+}) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const [hoveredPlace, setHoveredPlace] = useState<Place | null>(null);
@@ -72,20 +76,43 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect, selectedCategory = "al
 
     // Wait for map to load before adding sources and layers
     myMap.on("load", () => {
+      const layers = myMap.getStyle().layers;
+
+      // Find and modify label layers
+      for (const layer of layers) {
+        // Check if it's a label layer (typically has symbol type with text)
+        if (
+          (layer.type === "symbol" &&
+            layer.layout &&
+            layer.layout["text-field"]) ||
+          (layer.id && layer.id.includes("label"))
+        ) {
+          // Hide the text by setting visibility to none
+        console.log("layer", layer);
+        if(layer.id === "poi") 
+          myMap.setLayoutProperty(layer.id, "visibility", "none");
+        }
+      }
       // Filter places based on selected category if needed
-      const filteredPlaces = selectedCategory === "all" 
-        ? places 
-        : places.filter(place => place.category === selectedCategory);
+      const filteredPlaces =
+        selectedCategory === "all"
+          ? places
+          : places.filter((place) => place.category === selectedCategory);
 
       // Prepare GeoJSON data for each area
-      const areas = ["jayanagar", "koramangala", "hsr layout", "hsr layout 5th sector"];
-      
-      areas.forEach(area => {
+      const areas = [
+        "jayanagar",
+        "koramangala",
+        "hsr layout",
+        "hsr layout 5th sector",
+      ];
+
+      areas.forEach((area) => {
         // Filter places for this area
-        const areaPlaces = filteredPlaces.filter(place => 
-          place.area?.toLowerCase() === area.toLowerCase()
+        const areaPlaces = filteredPlaces.filter(
+          (place) => place.area?.toLowerCase() === area.toLowerCase()
         );
-        
+
         if (areaPlaces.length === 0) return; // Skip if no places in this area
 
         // Create GeoJSON for this area
@@ -99,14 +126,17 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect, selectedCategory = "al
             },
             properties: {
               ...place,
-              areaColor: areaColors[area as keyof typeof areaColors] || "#999999",
-              categoryColor: categoryColors[place.category as keyof typeof categoryColors] || categoryColors.all
+              areaColor:
+                areaColors[area as keyof typeof areaColors] || "#999999",
+              categoryColor:
+                categoryColors[place.category as keyof typeof categoryColors] ||
+                categoryColors.all,
             },
           })),
         };
 
         // Source ID based on area
-        const sourceId = `places-${area.replace(/\s+/g, '-')}`;
+        const sourceId = `places-${area.replace(/\s+/g, "-")}`;
 
         // Add the source
         myMap.addSource(sourceId, {
@@ -114,17 +144,156 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect, selectedCategory = "al
           data: areaData,
         });
 
+        // Base config for reuse
+        const heatmapPaintBase = {
+          "heatmap-opacity": 0.9,
+          "heatmap-color": [
+            "interpolate",
+            ["linear"],
+            ["heatmap-density"],
+            0,
+            "rgba(0, 0, 0, 0)",
+            1,
+            areaColors[area as keyof typeof areaColors] || "#999999",
+          ],
+        };
+
+        // High zoom (10–15) - Detailed layer
+        myMap.addLayer({
+          id: `${sourceId}-heatmap-high`,
+          type: "heatmap",
+          source: sourceId,
+          minzoom: 10,
+          maxzoom: 15,
+          paint: {
+            ...heatmapPaintBase,
+            "heatmap-intensity": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              10,
+              0.5,
+              15,
+              2,
+            ],
+            "heatmap-radius": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              10,
+              10,
+              15,
+              30,
+            ],
+            "heatmap-weight": [
+              "interpolate",
+              ["linear"],
+              ["get", "0.8"], // or your desired metric
+              0,
+              0,
+              5,
+              1,
+            ],
+          },
+        });
+
+        // Mid zoom (5–10) - Broader layer
+        myMap.addLayer({
+          id: `${sourceId}-heatmap-mid`,
+          type: "heatmap",
+          source: sourceId,
+          minzoom: 0,
+          maxzoom: 13,
+          paint: {
+            ...heatmapPaintBase,
+            "heatmap-intensity": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              5,
+              0.3,
+              10,
+              1,
+            ],
+            "heatmap-radius": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              5,
+              20,
+              10,
+              40,
+            ],
+            "heatmap-weight": [
+              "interpolate",
+              ["linear"],
+              ["get", "0.8"],
+              0,
+              0,
+              5,
+              1,
+            ],
+          },
+        });
+
+        // // Low zoom (0–5) - Very broad overview
+        // myMap.addLayer({
+        //   id: `${sourceId}-heatmap-low`,
+        //   type: "heatmap",
+        //   source: sourceId,
+        //   minzoom: 0,
+        //   maxzoom: 8,
+        //   paint: {
+        //     ...heatmapPaintBase,
+        //     "heatmap-intensity": [
+        //       "interpolate",
+        //       ["linear"],
+        //       ["zoom"],
+        //       0,
+        //       0.2,
+        //       5,
+        //       0.8,
+        //     ],
+        //     "heatmap-radius": [
+        //       "interpolate",
+        //       ["linear"],
+        //       ["zoom"],
+        //       0,
+        //       30,
+        //       5,
+        //       60,
+        //     ],
+        //     "heatmap-weight": [
+        //       "interpolate",
+        //       ["linear"],
+        //       ["get", "0.8"],
+        //       0,
+        //       0,
+        //       5,
+        //       1,
+        //     ],
+        //   },
+        // });
+
         // Add points layer for this area
         myMap.addLayer({
           id: `${sourceId}-points`,
           type: "circle",
           source: sourceId,
           paint: {
-            "circle-radius": ["interpolate", ["linear"], ["zoom"], 7, 4, 16, 12],
+            "circle-radius": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              7,
+              4,
+              16,
+              12,
+            ],
             "circle-color": ["get", "areaColor"],
             "circle-stroke-color": ["get", "categoryColor"],
-            "circle-stroke-width": 2,
-            "circle-opacity": 1,
+            "circle-stroke-width": 1,
+            "circle-opacity": 0.8,
           },
         });
 
@@ -185,9 +354,11 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect, selectedCategory = "al
             // Set hovered place and popup position
             setHoveredPlace(place);
 
-            const canvasRect = myMap.getCanvasContainer().getBoundingClientRect();
+            const canvasRect = myMap
+              .getCanvasContainer()
+              .getBoundingClientRect();
             const mouseEvent = e.originalEvent;
-            
+
             setPopupPosition({
               x: mouseEvent.clientX - canvasRect.left,
               y: mouseEvent.clientY - canvasRect.top,
@@ -281,82 +452,87 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect, selectedCategory = "al
 
   // Calculate the optimal position for the hover card
   const getOptimalPosition = () => {
-    if (!popupPosition || !mapRef.current || !cardSize.width || !cardSize.height) return null;
+    if (
+      !popupPosition ||
+      !mapRef.current ||
+      !cardSize.width ||
+      !cardSize.height
+    )
+      return null;
 
     const mapRect = mapRef.current.getBoundingClientRect();
     const padding = 10; // Padding from map edges
-    
+
     // Default position (pointer coordinates)
     let x = popupPosition.x;
     let y = popupPosition.y;
-    
+
     // Initial placement strategy - prefer above and centered on point
-    let placement = 'top'; // can be: top, bottom, left, right
-    
+    let placement = "top"; // can be: top, bottom, left, right
+
     // Calculate available space in each direction
     const spaceAbove = y;
     const spaceBelow = mapRect.height - y;
     const spaceLeft = x;
     const spaceRight = mapRect.width - x;
-    
+
     // Check if card fits above the point
     if (spaceAbove >= cardSize.height + padding) {
-      placement = 'top';
+      placement = "top";
       y -= padding; // Add some space between point and card
     }
     // If not above, check if it fits below
     else if (spaceBelow >= cardSize.height + padding) {
-      placement = 'bottom';
+      placement = "bottom";
       y += padding; // Add some space between point and card
     }
     // If neither above nor below works well, try left or right
     else if (spaceLeft > spaceRight && spaceLeft >= cardSize.width + padding) {
-      placement = 'left';
+      placement = "left";
       x -= padding; // Add some space between point and card
-    }
-    else if (spaceRight >= cardSize.width + padding) {
-      placement = 'right';
+    } else if (spaceRight >= cardSize.width + padding) {
+      placement = "right";
       x += padding; // Add some space between point and card
     }
     // If all else fails, place it where there's most space
     else {
       const spaces = [
-        { dir: 'top', space: spaceAbove },
-        { dir: 'bottom', space: spaceBelow },
-        { dir: 'left', space: spaceLeft },
-        { dir: 'right', space: spaceRight }
+        { dir: "top", space: spaceAbove },
+        { dir: "bottom", space: spaceBelow },
+        { dir: "left", space: spaceLeft },
+        { dir: "right", space: spaceRight },
       ];
-      
+
       const bestPlacement = spaces.sort((a, b) => b.space - a.space)[0];
       placement = bestPlacement.dir;
-      
+
       // Adjust position based on best placement
-      if (placement === 'top') y -= padding;
-      else if (placement === 'bottom') y += padding;
-      else if (placement === 'left') x -= padding;
-      else if (placement === 'right') x += padding;
+      if (placement === "top") y -= padding;
+      else if (placement === "bottom") y += padding;
+      else if (placement === "left") x -= padding;
+      else if (placement === "right") x += padding;
     }
-    
+
     // Apply CSS transform based on placement
-    let transform = '';
+    let transform = "";
     switch (placement) {
-      case 'top':
-        transform = 'translate(-50%, -100%)';
+      case "top":
+        transform = "translate(-50%, -100%)";
         break;
-      case 'bottom':
-        transform = 'translate(-50%, 0)';
+      case "bottom":
+        transform = "translate(-50%, 0)";
         break;
-      case 'left':
-        transform = 'translate(-100%, -50%)';
+      case "left":
+        transform = "translate(-100%, -50%)";
         break;
-      case 'right':
-        transform = 'translate(0, -50%)';
+      case "right":
+        transform = "translate(0, -50%)";
         break;
     }
-    
+
     // Ensure the card stays within map boundaries
     // For left and right positions, ensure vertical bounds
-    if (placement === 'left' || placement === 'right') {
+    if (placement === "left" || placement === "right") {
       // Adjust if too close to top
       if (y - cardSize.height / 2 < padding) {
         y = cardSize.height / 2 + padding;
@@ -366,9 +542,9 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect, selectedCategory = "al
         y = mapRect.height - cardSize.height / 2 - padding;
       }
     }
-    
+
     // For top and bottom positions, ensure horizontal bounds
-    if (placement === 'top' || placement === 'bottom') {
+    if (placement === "top" || placement === "bottom") {
       // Adjust if too close to left
       if (x - cardSize.width / 2 < padding) {
         x = cardSize.width / 2 + padding;
@@ -378,7 +554,7 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect, selectedCategory = "al
         x = mapRect.width - cardSize.width / 2 - padding;
       }
     }
-    
+
     return { x, y, transform, placement };
   };
 
@@ -387,19 +563,25 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect, selectedCategory = "al
   // Render the map legend
   const renderLegend = () => {
     return (
-      <div onClick={() => setShowLegend(false)} className="absolute bottom-4 left-4 bg-white p-3 cursor-pointer shadow-md z-20 text-xs rounded-lg">
+      <div
+        onClick={() => setShowLegend(false)}
+        className="absolute bottom-4 left-4 bg-white p-3 cursor-pointer shadow-md z-20 text-xs rounded-lg"
+      >
         <h3 className="font-semibold mb-2">Map Legend</h3>
-        
+
         <div className="mb-2">
           <h4 className="font-medium mb-1">Areas:</h4>
           <div className="grid grid-cols-2 gap-x-4">
             {Object.entries(areaColors).map(([area, color], index) => {
               // Only display HSR Layout once since both use the same color
               if (area === "hsr layout 5th sector") return null;
-              
+
               // Rename HSR Layout to include both areas
-              const displayName = area === "hsr layout" ? "HSR Layout" : area.charAt(0).toUpperCase() + area.slice(1);
-              
+              const displayName =
+                area === "hsr layout"
+                  ? "HSR Layout"
+                  : area.charAt(0).toUpperCase() + area.slice(1);
+
               return (
                 <div key={index} className="flex items-center mb-1">
                   <div
@@ -412,19 +594,26 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect, selectedCategory = "al
             })}
           </div>
         </div>
-        
+
         <div>
           <h4 className="font-medium mb-1">Categories:</h4>
           <div className="grid grid-cols-2 gap-x-4">
-            {categories.filter(cat => cat.id !== "all").map((category, index) => (
-              <div key={index} className="flex items-center mb-1">
-                <div
-                  className="w-4 h-4 rounded-full mr-1 border-2"
-                  style={{ borderColor: categoryColors[category.id as keyof typeof categoryColors] }}
-                ></div>
-                <span>{category.name}</span>
-              </div>
-            ))}
+            {categories
+              .filter((cat) => cat.id !== "all")
+              .map((category, index) => (
+                <div key={index} className="flex items-center mb-1">
+                  <div
+                    className="w-4 h-4 rounded-full mr-1 border-2"
+                    style={{
+                      borderColor:
+                        categoryColors[
+                          category.id as keyof typeof categoryColors
+                        ],
+                    }}
+                  ></div>
+                  <span>{category.name}</span>
+                </div>
+              ))}
           </div>
         </div>
       </div>
@@ -432,7 +621,10 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect, selectedCategory = "al
   };
 
   return (
-    <div ref={mapRef} className="relative w-full h-[400px] rounded-lg shadow-lg">
+    <div
+      ref={mapRef}
+      className="relative w-full h-[400px] rounded-lg shadow-lg"
+    >
       {/* Map Container */}
       <div className="absolute inset-0" />
 
@@ -446,7 +638,7 @@ const Map: React.FC<MapProps> = ({ places, onPlaceSelect, selectedCategory = "al
           <span className="text-lg font-bold">i</span>
         </button>
       )}
-        
+
       {/* Map Legend */}
       {showLegend && renderLegend()}
 

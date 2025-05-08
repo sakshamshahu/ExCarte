@@ -55,7 +55,6 @@ const amenityGroups = {
       icon: <ShoppingBag className="h-4 w-4" />,
       label: "Take-out",
     },
-    { key: "delivery", icon: <Truck className="h-4 w-4" />, label: "Delivery" },
     {
       key: "reservable",
       icon: <Calendar className="h-4 w-4" />,
@@ -107,6 +106,7 @@ const amenityGroups = {
     },
   ],
   features: [
+    { key: "delivery", icon: <Truck className="h-4 w-4" />, label: "Delivery" },
     {
       key: "outdoor_seating",
       icon: <Users className="h-4 w-4" />,
@@ -485,14 +485,26 @@ const Explore = () => {
       console.log("LLM search for:", searchQuery);
 
       // Simulate LLM search delay
-      const llmResults = await api.places.getLLMResults({
-        search: searchQuery,
-        area: selectedArea,
-      });
-      console.log("LLM results:", llmResults);
-      const placeIds = llmResults
-        .filter((result: { decision: string }) => result.decision === "Yes")
-        .map((result: { id: string }) => result.id);
+      // const llmResults = await api.places.getLLMResults({
+      //   search: searchQuery,
+      //   area: selectedArea,
+      // });
+      // console.log("LLM results:", llmResults);
+      // const placeIds = llmResults
+      //   .filter((result: { decision: string }) => result.decision === "Yes")
+      //   .map((result: { id: string }) => result.id);
+      const placeIds = [
+        "ChIJRwZR3ZEUrjsR-F0llyJnP4g",
+        "ChIJX4W559QVrjsRrodbeit77tA",
+        "ChIJlWMXff0VrjsRjBmmWgHsTMA",
+        "ChIJs3caMl4VrjsR6FV0kwtUL8w",
+        "ChIJTUu3P5wVrjsRvb4C6pAJ63M",
+        "ChIJLx3B02cVrjsRKQwchm_wZww",
+        "ChIJkdTupJIUrjsRGj4eem-Ndg4",
+        "ChIJS3DNGpAUrjsRgssDjbqSaPE",
+        "ChIJw5BFMQkVrjsRgDI4_idnYAA",
+        "ChIJa-jPFNsVrjsRkXlyYRsufk4"
+      ];
       fetchPlacesByIds(placeIds);
       clearAdvancedFilters(false);
       setActiveCategory("all");
